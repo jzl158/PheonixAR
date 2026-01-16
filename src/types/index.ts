@@ -38,13 +38,25 @@ export interface Coin {
   expiresAt?: Date;
 }
 
+// Homebase Types
+export interface Homebase {
+  id: string;
+  name: string;
+  position: Coordinates;
+  address: string;
+  plusCode: string;
+  description?: string;
+}
+
 export interface GameState {
   coins: Coin[];
   userCoins: number;
   collectedCoinIds: string[];
+  homebases: Homebase[];
   setCoins: (coins: Coin[]) => void;
   collectCoin: (coinId: string, value: number) => void;
   addCoins: (coins: Coin[]) => void;
+  setHomebases: (homebases: Homebase[]) => void;
 }
 
 // Map Types

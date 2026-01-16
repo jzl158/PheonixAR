@@ -1,10 +1,11 @@
 import { create } from 'zustand';
-import type { GameState, Coin } from '../types';
+import type { GameState, Coin, Homebase } from '../types';
 
 export const useGameStore = create<GameState>((set) => ({
   coins: [],
   userCoins: 0,
   collectedCoinIds: [],
+  homebases: [],
 
   setCoins: (coins: Coin[]) => {
     set({ coins });
@@ -22,5 +23,9 @@ export const useGameStore = create<GameState>((set) => ({
     set((state) => ({
       coins: [...state.coins, ...newCoins],
     }));
+  },
+
+  setHomebases: (homebases: Homebase[]) => {
+    set({ homebases });
   },
 }));

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { useCoins } from '../../hooks/useCoins';
+import { useGameStore } from '../../store/gameStore';
+import { getAllHomebases } from '../../data/homebases';
 import { TopBar } from '../navigation/TopBar';
 import { BottomNav } from '../navigation/BottomNav';
 
@@ -14,9 +16,17 @@ declare global {
 export function MapView() {
   const { position, isLoading, error } = useGeolocation();
   const { coins, attemptCollectCoin } = useCoins(position);
+  const { homebases, setHomebases } = useGameStore();
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+
+  // Load homebases on mount
+  useEffect(() => {
+    const loadedHomebases = getAllHomebases();
+    setHomebases(loadedHomebases);
+    console.log('🏠 Loaded', loadedHomebases.length, 'homebases');
+  }, [setHomebases]);
 
   // Wait for Google Maps to load
   useEffect(() => {
@@ -247,6 +257,64 @@ export function MapView() {
       markers.forEach(marker => marker.setMap(null));
     };
   }, [map, coins, attemptCollectCoin]);
+
+  // Render homebases as map markers
+  useEffect(() => {
+    if (!map || !homebases.length) return;
+
+    console.log('🏠 Rendering', homebases.length, 'homebase markers');
+
+    const markers: google.maps.Marker[] = [];
+
+    homebases.forEach((homebase) => {
+      // Create homebase marker with house icon
+      const marker = new google.maps.Marker({
+        position: { lat: homebase.position.lat, lng: homebase.position.lng },
+        map: map,
+        icon: {
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg width="70" height="80" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="homeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              <!-- House base -->
+              <rect x="20" y="35" width="30" height="30" fill="url(#homeGrad)" stroke="#047857" stroke-width="2"/>
+              <!-- Roof -->
+              <polygon points="35,20 15,35 55,35" fill="#047857"/>
+              <!-- Door -->
+              <rect x="30" y="48" width="10" height="17" fill="#065f46"/>
+              <!-- Window -->
+              <rect x="25" y="40" width="6" height="6" fill="#d1fae5"/>
+              <rect x="39" y="40" width="6" height="6" fill="#d1fae5"/>
+              <!-- Pointer -->
+              <polygon points="35,70 27,75 43,75" fill="#047857"/>
+            </svg>
+          `),
+          scaledSize: new google.maps.Size(70, 80),
+          anchor: new google.maps.Point(35, 80),
+        },
+        title: homebase.name,
+        zIndex: 999, // Higher than coins
+      });
+
+      // Add click listener
+      marker.addListener('click', () => {
+        console.log('🏠 Homebase clicked:', homebase.name);
+        // Show info about the homebase
+        alert(`🏠 ${homebase.name}\n\n${homebase.description || ''}\n\nAddress: ${homebase.address}\nPlus Code: ${homebase.plusCode}`);
+      });
+
+      markers.push(marker);
+    });
+
+    // Cleanup function to remove markers
+    return () => {
+      markers.forEach(marker => marker.setMap(null));
+    };
+  }, [map, homebases]);
 
   if (isLoading) {
     return (
