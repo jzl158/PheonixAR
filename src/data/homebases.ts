@@ -8,15 +8,15 @@ declare global {
 }
 
 // Convert Plus Code to coordinates using Google Maps Geocoding API
-// VJ39+MF Atlanta, Georgia = 33.8542635, -84.3833106 (45 Old Ivy Rd NE)
+// VJ39+MF Atlanta, Georgia = 33.8541508, -84.3838419 (45 Old Ivy Rd NE)
 
 export const HOMEBASES: Homebase[] = [
   {
     id: 'homebase-1',
     name: 'Atlanta Homebase Alpha',
     position: {
-      lat: 33.8542635,
-      lng: -84.3833106,
+      lat: 33.8541508,
+      lng: -84.3838419,
     },
     address: '45 Old Ivy Rd NE, Atlanta, GA 30342',
     plusCode: 'VJ39+MF',
