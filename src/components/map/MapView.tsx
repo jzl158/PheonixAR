@@ -97,7 +97,7 @@ export function MapView() {
 
     console.log('🪙 Rendering', coins.length, 'coins as map markers');
 
-    const markers: google.maps.marker.AdvancedMarkerElement[] = [];
+    const markers: google.maps.Marker[] = [];
 
     coins.forEach((coin) => {
       // Create custom HTML element for coin
@@ -222,7 +222,7 @@ export function MapView() {
         document.head.appendChild(style);
       }
 
-      markers.push(marker as any);
+      markers.push(marker);
     });
 
     // Add CSS animations if not already added
