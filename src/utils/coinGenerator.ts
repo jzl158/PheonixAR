@@ -7,13 +7,13 @@ const EARTH_RADIUS_KM = 6371;
  * Generates random coins within a radius around a given location
  * @param center - The center coordinates
  * @param count - Number of coins to generate
- * @param radiusKm - Radius in kilometers
+ * @param radiusKm - Radius in kilometers (default 0.366km = 1200 feet)
  * @returns Array of generated coins
  */
 export function generateCoinsNearLocation(
   center: Coordinates,
   count: number = 10,
-  radiusKm: number = 0.5
+  radiusKm: number = 0.366
 ): Coin[] {
   const coins: Coin[] = [];
 

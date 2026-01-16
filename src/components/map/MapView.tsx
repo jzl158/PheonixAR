@@ -3,61 +3,117 @@ import { useGeolocation } from '../../hooks/useGeolocation';
 import { useCoins } from '../../hooks/useCoins';
 import { TopBar } from '../navigation/TopBar';
 import { BottomNav } from '../navigation/BottomNav';
-import type { Coin } from '../../types';
 
-// Declare custom elements for TypeScript
+// Declare Google Maps types
 declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'gmp-map-3d': any;
-    }
+  interface Window {
+    google: any;
   }
 }
 
 export function MapView() {
   const { position, isLoading, error } = useGeolocation();
   const { coins, attemptCollectCoin } = useCoins(position);
-  const mapRef = useRef<HTMLElement | null>(null);
-  const [isMapReady, setIsMapReady] = useState(false);
-  const markersRef = useRef<HTMLDivElement[]>([]);
+  const mapRef = useRef<HTMLDivElement | null>(null);
+  const [mapsLoaded, setMapsLoaded] = useState(false);
+  const [map, setMap] = useState<google.maps.Map | null>(null);
 
-  // Wait for map to be ready
+  // Wait for Google Maps to load
   useEffect(() => {
-    if (!mapRef.current) return;
-
-    const checkMapReady = setInterval(() => {
-      if (mapRef.current && (mapRef.current as any).map) {
-        setIsMapReady(true);
-        clearInterval(checkMapReady);
+    const checkMapsLoaded = setInterval(() => {
+      if (window.google && window.google.maps) {
+        console.log('✅ Google Maps API ready!');
+        setMapsLoaded(true);
+        clearInterval(checkMapsLoaded);
       }
     }, 100);
 
-    return () => clearInterval(checkMapReady);
+    const timeout = setTimeout(() => {
+      clearInterval(checkMapsLoaded);
+      console.error('⏱️ Timeout waiting for Google Maps');
+    }, 10000);
+
+    return () => {
+      clearInterval(checkMapsLoaded);
+      clearTimeout(timeout);
+    };
   }, []);
 
-  // Add coin markers as HTML overlays
+  // Initialize map when API loads and position is available
   useEffect(() => {
-    if (!isMapReady || !coins.length || !position) return;
+    if (!mapRef.current || !position || !mapsLoaded || map) return;
 
-    // Clear old markers
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
+    console.log('🗺️ Initializing Google Maps...');
+    console.log('📍 Position:', position);
 
-    coins.forEach((coin: Coin) => {
-      const marker = document.createElement('div');
-      marker.style.cssText = `
-        position: absolute;
+    const newMap = new google.maps.Map(mapRef.current, {
+      center: { lat: position.lat, lng: position.lng },
+      zoom: 18,
+      tilt: 67.5,
+      heading: 0,
+      mapTypeId: 'satellite',
+      disableDefaultUI: true,
+      gestureHandling: 'greedy',
+      clickableIcons: false,
+    });
+
+    console.log('✅ Map initialized!');
+    setMap(newMap);
+  }, [mapsLoaded, position, map]);
+
+  // Add user location marker
+  useEffect(() => {
+    if (!map || !position) return;
+
+    console.log('📍 Adding user location marker at:', position);
+
+    // Create user location marker
+    const userMarker = new google.maps.Marker({
+      position: { lat: position.lat, lng: position.lng },
+      map: map,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 8,
+        fillColor: '#3B82F6',
+        fillOpacity: 1,
+        strokeColor: '#FFFFFF',
+        strokeWeight: 3,
+      },
+      title: 'Your Location',
+      zIndex: 1000,
+    });
+
+    console.log('✅ User location marker added');
+
+    // Cleanup
+    return () => {
+      userMarker.setMap(null);
+    };
+  }, [map, position]);
+
+  // Render coins as Google Maps markers
+  useEffect(() => {
+    if (!map || !coins.length) return;
+
+    console.log('🪙 Rendering', coins.length, 'coins as map markers');
+
+    const markers: google.maps.marker.AdvancedMarkerElement[] = [];
+
+    coins.forEach((coin) => {
+      // Create custom HTML element for coin
+      const coinDiv = document.createElement('div');
+      coinDiv.className = 'coin-marker';
+      coinDiv.style.cssText = `
         cursor: pointer;
-        z-index: 10;
-        pointer-events: auto;
+        transform: translate(-50%, -100%);
       `;
 
-      marker.innerHTML = `
+      coinDiv.innerHTML = `
         <div style="
           display: flex;
           flex-direction: column;
           align-items: center;
-          transform: translateX(-50%) translateY(-100%);
+          animation: float 2s ease-in-out infinite;
         ">
           <div style="
             background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
@@ -71,8 +127,7 @@ export function MapView() {
             font-weight: bold;
             color: white;
             font-size: 18px;
-            box-shadow: 0 6px 20px rgba(251, 191, 36, 0.6), 0 3px 8px rgba(0,0,0,0.3);
-            animation: coinFloat 2s ease-in-out infinite;
+            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.7), 0 4px 8px rgba(0,0,0,0.4);
           ">
             ${coin.value}
           </div>
@@ -87,65 +142,120 @@ export function MapView() {
         </div>
       `;
 
-      // Click handler
-      marker.addEventListener('click', async (e) => {
-        e.stopPropagation();
+      // Create marker using legacy Marker (AdvancedMarkerElement requires API key setup)
+      const marker = new google.maps.Marker({
+        position: { lat: coin.position.lat, lng: coin.position.lng },
+        map: map,
+        icon: {
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg width="60" height="70" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+                  <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              <circle cx="30" cy="30" r="25" fill="url(#grad)" stroke="#d97706" stroke-width="3"/>
+              <text x="30" y="38" font-size="20" font-weight="bold" fill="white" text-anchor="middle">${coin.value}</text>
+              <polygon points="30,55 22,60 38,60" fill="#d97706"/>
+            </svg>
+          `),
+          scaledSize: new google.maps.Size(60, 70),
+          anchor: new google.maps.Point(30, 70),
+        },
+        title: `Coin worth ${coin.value}`,
+      });
+
+      // Add click listener
+      marker.addListener('click', async () => {
+        console.log('💰 Coin clicked:', coin.value);
         const success = await attemptCollectCoin(coin);
         if (success) {
-          marker.style.animation = 'coinCollect 0.6s ease-out forwards';
-          setTimeout(() => marker.remove(), 600);
+          // Show success animation before removing
+          const pos = marker.getPosition();
+          if (pos) {
+            // Create a temporary animation overlay
+            const successDiv = document.createElement('div');
+            successDiv.style.cssText = `
+              position: absolute;
+              left: 50%;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              font-size: 48px;
+              animation: collectSuccess 1s ease-out forwards;
+              pointer-events: none;
+              z-index: 10000;
+            `;
+            successDiv.textContent = `+${coin.value}`;
+            document.body.appendChild(successDiv);
+
+            setTimeout(() => successDiv.remove(), 1000);
+          }
+
+          marker.setMap(null);
         }
       });
 
-      // Calculate position on screen (simplified - positions relative to map center)
-      const map = mapRef.current;
-      if (map) {
-        const mapRect = map.getBoundingClientRect();
-
-        // Simple positioning based on lat/lng offset from center
-        const latDiff = coin.position.lat - position.lat;
-        const lngDiff = coin.position.lng - position.lng;
-
-        // Very rough conversion (meters to pixels at this zoom)
-        const scale = 1.5; // Adjust based on range
-        const x = mapRect.width / 2 + (lngDiff * 111320 * Math.cos(position.lat * Math.PI / 180) * scale);
-        const y = mapRect.height / 2 - (latDiff * 111320 * scale);
-
-        marker.style.left = `${x}px`;
-        marker.style.top = `${y}px`;
-
-        map.appendChild(marker);
-        markersRef.current.push(marker);
+      // Add success animation CSS if not already added
+      if (!document.getElementById('collect-success-animation')) {
+        const style = document.createElement('style');
+        style.id = 'collect-success-animation';
+        style.textContent = `
+          @keyframes collectSuccess {
+            0% {
+              transform: translate(-50%, -50%) scale(0.5);
+              opacity: 1;
+              color: #fbbf24;
+            }
+            50% {
+              transform: translate(-50%, -100px) scale(1.5);
+              opacity: 1;
+              color: #10b981;
+            }
+            100% {
+              transform: translate(-50%, -150px) scale(2);
+              opacity: 0;
+              color: #10b981;
+            }
+          }
+        `;
+        document.head.appendChild(style);
       }
+
+      markers.push(marker as any);
     });
 
-    // Add animations
-    if (!document.getElementById('coin-styles')) {
+    // Add CSS animations if not already added
+    if (!document.getElementById('coin-animations')) {
       const style = document.createElement('style');
-      style.id = 'coin-styles';
+      style.id = 'coin-animations';
       style.textContent = `
-        @keyframes coinFloat {
-          0%, 100% { transform: translateX(-50%) translateY(-100%); }
-          50% { transform: translateX(-50%) translateY(-110%); }
+        @keyframes float {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-10px); }
         }
-        @keyframes coinCollect {
-          0% { transform: translateX(-50%) translateY(-100%) scale(1); opacity: 1; }
-          100% { transform: translateX(-50%) translateY(-150%) scale(2); opacity: 0; }
+        @keyframes collect {
+          0% { transform: scale(1); opacity: 1; }
+          100% { transform: scale(2) translateY(-50px); opacity: 0; }
         }
       `;
       document.head.appendChild(style);
     }
 
+    // Cleanup function to remove markers
     return () => {
-      markersRef.current.forEach(marker => marker.remove());
-      markersRef.current = [];
+      markers.forEach(marker => marker.setMap(null));
     };
-  }, [isMapReady, coins, position, attemptCollectCoin]);
+  }, [map, coins, attemptCollectCoin]);
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <p className="text-white text-lg">Loading your location...</p>
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-bounce">📍</div>
+          <p className="text-white text-lg">Loading your location...</p>
+          <p className="text-gray-500 text-sm mt-2">Please allow location access</p>
+        </div>
       </div>
     );
   }
@@ -153,10 +263,19 @@ export function MapView() {
   if (error) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center px-6">
-        <div className="text-center">
-          <p className="text-red-500 text-xl mb-4">📍 Location Error</p>
-          <p className="text-gray-400">{error}</p>
-          <p className="text-gray-500 text-sm mt-4">Please enable location services to use this app</p>
+        <div className="text-center max-w-md">
+          <p className="text-red-500 text-3xl mb-4">📍</p>
+          <p className="text-red-400 text-xl mb-4">Location Error</p>
+          <p className="text-gray-400 mb-4">{error}</p>
+          <p className="text-gray-500 text-sm mb-6">
+            Please enable location services in your browser settings and reload the page.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-full font-bold transition-colors"
+          >
+            Reload Page
+          </button>
         </div>
       </div>
     );
@@ -165,41 +284,58 @@ export function MapView() {
   if (!position) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <p className="text-white text-lg">Waiting for location...</p>
+        <div className="text-center">
+          <div className="text-6xl mb-4 animate-pulse">📍</div>
+          <p className="text-white text-lg">Waiting for location...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!mapsLoaded) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center max-w-md px-6">
+          <div className="text-6xl mb-4 animate-spin">🗺️</div>
+          <p className="text-white text-lg mb-4">Loading Google Maps 3D...</p>
+          <p className="text-gray-500 text-sm">
+            This may take a few moments. Check the browser console (F12) for details.
+          </p>
+          <div className="mt-6 text-xs text-gray-600">
+            <p>Waiting for:</p>
+            <p>• Google Maps API to load</p>
+            <p>• 3D map component to initialize</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-black">
-      <gmp-map-3d
+    <div className="relative w-screen h-screen overflow-hidden" style={{ background: '#1a1a1a' }}>
+      {/* Google Maps Container */}
+      <div
         ref={mapRef}
-        mode="hybrid"
-        center={`${position.lat}, ${position.lng}`}
-        range="500"
-        tilt="67"
-        heading="0"
-        style={{ width: '100%', height: '100%', position: 'relative' }}
+        style={{
+          width: '100%',
+          height: '100%',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          zIndex: 1,
+        }}
       />
 
       <TopBar />
       <BottomNav />
 
-      {/* User Location Indicator */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-30 pointer-events-none">
-        <div className="relative">
-          <div className="bg-blue-500 rounded-full w-6 h-6 border-4 border-white shadow-2xl"></div>
-          <div className="absolute inset-0 bg-blue-400 rounded-full w-6 h-6 animate-ping opacity-60"></div>
-        </div>
-      </div>
-
       {/* Controls */}
       <div className="absolute top-24 right-4 z-20 flex flex-col gap-3">
         <button
           onClick={() => {
-            const map = mapRef.current as any;
             if (map) {
-              map.tilt = map.tilt >= 60 ? 0 : 67;
+              const currentTilt = map.getTilt();
+              map.setTilt(currentTilt === 0 ? 67.5 : 0);
             }
           }}
           className="bg-black/70 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-black/80 transition-all active:scale-95"
@@ -208,10 +344,9 @@ export function MapView() {
         </button>
         <button
           onClick={() => {
-            const map = mapRef.current as any;
             if (map && position) {
-              map.center = `${position.lat}, ${position.lng}`;
-              map.range = 500;
+              map.setCenter({ lat: position.lat, lng: position.lng });
+              map.setZoom(18);
             }
           }}
           className="bg-black/70 backdrop-blur-md text-white p-3 rounded-full shadow-lg hover:bg-black/80 transition-all active:scale-95"
@@ -221,8 +356,17 @@ export function MapView() {
       </div>
 
       {/* Coin Counter */}
-      <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 z-20 bg-primary-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-xl">
+      <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 z-20 bg-primary-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-xl pointer-events-none">
         <span className="text-lg font-bold">🪙 {coins.length} coins nearby</span>
+      </div>
+
+      {/* Debug info */}
+      <div className="absolute top-4 left-4 z-50 bg-black/80 text-white text-xs p-3 rounded-lg backdrop-blur-sm">
+        <div className="font-bold mb-1">Debug Info:</div>
+        <div>Lat: {position.lat.toFixed(6)}</div>
+        <div>Lng: {position.lng.toFixed(6)}</div>
+        <div>Coins: {coins.length}</div>
+        <div>Maps: {mapsLoaded ? '✓' : '✗'}</div>
       </div>
     </div>
   );
