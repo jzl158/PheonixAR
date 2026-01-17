@@ -6,10 +6,11 @@ import { getAllHomebases } from '../../data/homebases';
 import { TopBar } from '../navigation/TopBar';
 import { BottomNav } from '../navigation/BottomNav';
 
-// Declare Google Maps types
+// Declare Google Maps and 8th Wall types
 declare global {
   interface Window {
     google: any;
+    XR8?: any;
   }
 }
 
@@ -20,6 +21,50 @@ export function MapView() {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [arLoaded, setArLoaded] = useState(false);
+
+  // Load 8th Wall AR script
+  useEffect(() => {
+    const appKey = import.meta.env.VITE_EIGHTH_WALL_APP_KEY;
+    if (!appKey) {
+      console.warn('8th Wall App Key not configured. Set VITE_EIGHTH_WALL_APP_KEY in .env');
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = `https://apps.8thwall.com/xrweb?appKey=${appKey}`;
+    script.async = true;
+    script.onload = () => {
+      console.log('✅ 8th Wall AR SDK loaded');
+      setArLoaded(true);
+    };
+    script.onerror = () => {
+      console.error('❌ Failed to load 8th Wall AR SDK');
+    };
+    document.body.appendChild(script);
+
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
+  }, []);
+
+  // Start AR experience
+  const startAR = async () => {
+    if (!window.XR8) {
+      alert('AR SDK not loaded yet. Please wait a moment and try again.');
+      return;
+    }
+
+    try {
+      await window.XR8.start();
+      console.log('🎥 AR Camera Started');
+    } catch (e) {
+      console.error('❌ Failed to start AR:', e);
+      alert('Failed to start AR. Please ensure camera permissions are granted.');
+    }
+  };
 
   // Load homebases on mount
   useEffect(() => {
@@ -443,6 +488,18 @@ export function MapView() {
 
       {/* Controls */}
       <div className="absolute top-24 right-4 z-20 flex flex-col gap-3">
+        <button
+          onClick={startAR}
+          disabled={!arLoaded}
+          className={`px-5 py-2.5 rounded-full font-bold text-sm shadow-lg transition-all active:scale-95 ${
+            arLoaded
+              ? 'bg-primary-600/90 backdrop-blur-md text-white hover:bg-primary-700/90'
+              : 'bg-gray-600/50 text-gray-400 cursor-not-allowed'
+          }`}
+          title={arLoaded ? 'Launch AR Experience' : 'Loading AR SDK...'}
+        >
+          {arLoaded ? '📱 Open AR' : '⏳ Loading AR...'}
+        </button>
         <button
           onClick={() => {
             if (map) {
