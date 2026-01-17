@@ -7,20 +7,20 @@ declare global {
   }
 }
 
-// Convert Plus Code to coordinates using Google Maps Geocoding API
-// VJ39+MF Atlanta, Georgia = 33.8541508, -84.3838419 (45 Old Ivy Rd NE)
+// Atlanta Blockchain Center precise coordinates from Google Maps
+// 33.8541508, -84.381267
 
 export const HOMEBASES: Homebase[] = [
   {
     id: 'homebase-1',
-    name: 'Atlanta Homebase Alpha',
+    name: 'Atlanta Blockchain Center',
     position: {
       lat: 33.8541508,
-      lng: -84.3838419,
+      lng: -84.381267,
     },
-    address: '45 Old Ivy Rd NE, Atlanta, GA 30342',
+    address: 'Atlanta Blockchain Center, Atlanta, GA',
     plusCode: 'VJ39+MF',
-    description: 'Primary homebase location in Atlanta',
+    description: 'Atlanta Blockchain Center homebase',
   },
 ];
 
