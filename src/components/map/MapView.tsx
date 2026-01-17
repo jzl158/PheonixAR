@@ -110,34 +110,74 @@ export function MapView() {
     const markers: google.maps.Marker[] = [];
 
     coins.forEach((coin) => {
-      // Use custom 1coin.png image for value 1 coins with pulsating aura
-      const iconConfig = coin.value === 1 ? {
-        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-          <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-            <defs>
-              <style>
-                @keyframes pulse {
-                  0%, 100% { r: 35; opacity: 0.6; }
-                  50% { r: 45; opacity: 0.2; }
-                }
-                @keyframes pulse2 {
-                  0%, 100% { r: 40; opacity: 0.4; }
-                  50% { r: 50; opacity: 0.1; }
-                }
-                .aura1 { animation: pulse 2s ease-in-out infinite; }
-                .aura2 { animation: pulse2 2s ease-in-out infinite 0.5s; }
-              </style>
-            </defs>
-            <!-- Pulsating auras -->
-            <circle class="aura2" cx="50" cy="40" r="40" fill="#fbbf24" opacity="0.4"/>
-            <circle class="aura1" cx="50" cy="40" r="35" fill="#fbbf24" opacity="0.6"/>
-            <!-- 1coin image -->
-            <image href="/1coin.png" x="20" y="10" width="60" height="60"/>
-          </svg>
-        `),
-        scaledSize: new google.maps.Size(100, 100),
-        anchor: new google.maps.Point(50, 90),
-      } : {
+      // Special handling for 1 coins with image overlay
+      if (coin.value === 1) {
+        // Create base marker with pulsating aura
+        const auraIcon = {
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <style>
+                  @keyframes pulse1 {
+                    0%, 100% { r: 35; opacity: 0.6; }
+                    50% { r: 45; opacity: 0.2; }
+                  }
+                  @keyframes pulse2 {
+                    0%, 100% { r: 40; opacity: 0.4; }
+                    50% { r: 50; opacity: 0.1; }
+                  }
+                  .aura1 { animation: pulse1 2s ease-in-out infinite; }
+                  .aura2 { animation: pulse2 2s ease-in-out infinite 0.5s; }
+                </style>
+              </defs>
+              <circle class="aura2" cx="50" cy="50" r="40" fill="#fbbf24" opacity="0.4"/>
+              <circle class="aura1" cx="50" cy="50" r="35" fill="#fbbf24" opacity="0.6"/>
+            </svg>
+          `),
+          scaledSize: new google.maps.Size(100, 100),
+          anchor: new google.maps.Point(50, 50),
+        };
+
+        const auraMarker = new google.maps.Marker({
+          position: { lat: coin.position.lat, lng: coin.position.lng },
+          map: map,
+          icon: auraIcon,
+          title: `Coin worth ${coin.value}`,
+          zIndex: 100,
+        });
+
+        // Create overlay marker with 1coin image on top
+        const imageMarker = new google.maps.Marker({
+          position: { lat: coin.position.lat, lng: coin.position.lng },
+          map: map,
+          icon: {
+            url: '/1coin.png',
+            scaledSize: new google.maps.Size(60, 60),
+            anchor: new google.maps.Point(30, 30),
+          },
+          title: `Coin worth ${coin.value}`,
+          zIndex: 101,
+        });
+
+        // Add click listener to both markers
+        const clickHandler = async () => {
+          console.log('💰 Coin clicked:', coin.value);
+          const success = await attemptCollectCoin(coin);
+          if (success) {
+            auraMarker.setMap(null);
+            imageMarker.setMap(null);
+          }
+        };
+
+        auraMarker.addListener('click', clickHandler);
+        imageMarker.addListener('click', clickHandler);
+
+        markers.push(auraMarker, imageMarker);
+        return; // Skip the normal marker creation
+      }
+
+      // Standard coins with pulsating aura
+      const iconConfig = {
         url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
           <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
             <defs>
