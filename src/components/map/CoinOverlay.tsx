@@ -35,6 +35,8 @@ export function CoinOverlay({ coins, onCoinClick }: CoinOverlayProps) {
     const oneCoins = coins.filter(coin => coin.value === 1);
     const otherCoins = coins.filter(coin => coin.value !== 1);
 
+    console.log('Total coins:', coins.length, '| 1-coins:', oneCoins.length, '| Other coins:', otherCoins.length);
+
     // Icon layer for 1 coins
     const iconLayer = new IconLayer({
       id: 'one-coins-layer',
