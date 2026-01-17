@@ -42,10 +42,13 @@ export function CoinOverlay({ coins, onCoinClick }: CoinOverlayProps) {
       getPosition: (d: Coin) => [d.position.lng, d.position.lat, 10],
       getIcon: () => ({
         url: '/1coin.png',
-        width: 128,
-        height: 128,
+        width: 256,
+        height: 256,
+        anchorY: 128,
+        anchorX: 128,
       }),
-      getSize: 50,
+      sizeScale: 1,
+      getSize: 40,
       pickable: true,
       onClick: (info) => {
         if (info.object) {
