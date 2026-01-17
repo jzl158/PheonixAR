@@ -110,69 +110,34 @@ export function MapView() {
     const markers: google.maps.Marker[] = [];
 
     coins.forEach((coin) => {
-      // Create custom HTML element for coin
-      const coinDiv = document.createElement('div');
-      coinDiv.className = 'coin-marker';
-      coinDiv.style.cssText = `
-        cursor: pointer;
-        transform: translate(-50%, -100%);
-      `;
+      // Use custom 1coin.png image for value 1 coins
+      const iconConfig = coin.value === 1 ? {
+        url: '/1coin.png',
+        scaledSize: new google.maps.Size(60, 60),
+        anchor: new google.maps.Point(30, 60),
+      } : {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="60" height="70" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="grad${coin.id}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <circle cx="30" cy="30" r="25" fill="url(#grad${coin.id})" stroke="#d97706" stroke-width="3"/>
+            <text x="30" y="38" font-size="20" font-weight="bold" fill="white" text-anchor="middle">${coin.value}</text>
+            <polygon points="30,55 22,60 38,60" fill="#d97706"/>
+          </svg>
+        `),
+        scaledSize: new google.maps.Size(60, 70),
+        anchor: new google.maps.Point(30, 70),
+      };
 
-      coinDiv.innerHTML = `
-        <div style="
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          animation: float 2s ease-in-out infinite;
-        ">
-          <div style="
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            border: 3px solid #d97706;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: white;
-            font-size: 18px;
-            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.7), 0 4px 8px rgba(0,0,0,0.4);
-          ">
-            ${coin.value}
-          </div>
-          <div style="
-            width: 0;
-            height: 0;
-            border-left: 8px solid transparent;
-            border-right: 8px solid transparent;
-            border-top: 12px solid #d97706;
-            margin-top: -3px;
-          "></div>
-        </div>
-      `;
-
-      // Create marker using legacy Marker (AdvancedMarkerElement requires API key setup)
+      // Create marker
       const marker = new google.maps.Marker({
         position: { lat: coin.position.lat, lng: coin.position.lng },
         map: map,
-        icon: {
-          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-            <svg width="60" height="70" xmlns="http://www.w3.org/2000/svg">
-              <defs>
-                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
-                </linearGradient>
-              </defs>
-              <circle cx="30" cy="30" r="25" fill="url(#grad)" stroke="#d97706" stroke-width="3"/>
-              <text x="30" y="38" font-size="20" font-weight="bold" fill="white" text-anchor="middle">${coin.value}</text>
-              <polygon points="30,55 22,60 38,60" fill="#d97706"/>
-            </svg>
-          `),
-          scaledSize: new google.maps.Size(60, 70),
-          anchor: new google.maps.Point(30, 70),
-        },
+        icon: iconConfig,
         title: `Coin worth ${coin.value}`,
       });
 
