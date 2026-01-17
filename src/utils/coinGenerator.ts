@@ -1,6 +1,6 @@
 import type { Coin, Coordinates } from '../types';
 
-const COIN_VALUES = [5, 10, 15, 20];
+const COIN_VALUES = [1, 3, 5, 7, 10, 15, 20, 25];
 const EARTH_RADIUS_KM = 6371;
 
 /**
