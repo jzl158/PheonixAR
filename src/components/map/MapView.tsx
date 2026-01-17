@@ -110,27 +110,66 @@ export function MapView() {
     const markers: google.maps.Marker[] = [];
 
     coins.forEach((coin) => {
-      // Use custom 1coin.png image for value 1 coins
+      // Use custom 1coin.png image for value 1 coins with pulsating aura
       const iconConfig = coin.value === 1 ? {
-        url: '/1coin.png',
-        scaledSize: new google.maps.Size(60, 60),
-        anchor: new google.maps.Point(30, 60),
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+            <defs>
+              <style>
+                @keyframes pulse {
+                  0%, 100% { r: 35; opacity: 0.6; }
+                  50% { r: 45; opacity: 0.2; }
+                }
+                @keyframes pulse2 {
+                  0%, 100% { r: 40; opacity: 0.4; }
+                  50% { r: 50; opacity: 0.1; }
+                }
+                .aura1 { animation: pulse 2s ease-in-out infinite; }
+                .aura2 { animation: pulse2 2s ease-in-out infinite 0.5s; }
+              </style>
+            </defs>
+            <!-- Pulsating auras -->
+            <circle class="aura2" cx="50" cy="40" r="40" fill="#fbbf24" opacity="0.4"/>
+            <circle class="aura1" cx="50" cy="40" r="35" fill="#fbbf24" opacity="0.6"/>
+            <!-- 1coin image -->
+            <image href="/1coin.png" x="20" y="10" width="60" height="60"/>
+          </svg>
+        `),
+        scaledSize: new google.maps.Size(100, 100),
+        anchor: new google.maps.Point(50, 90),
       } : {
         url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
-          <svg width="60" height="70" xmlns="http://www.w3.org/2000/svg">
+          <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="grad${coin.id}" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
                 <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
               </linearGradient>
+              <style>
+                @keyframes pulse${coin.id} {
+                  0%, 100% { r: 35; opacity: 0.6; }
+                  50% { r: 45; opacity: 0.2; }
+                }
+                @keyframes pulse2${coin.id} {
+                  0%, 100% { r: 40; opacity: 0.4; }
+                  50% { r: 50; opacity: 0.1; }
+                }
+                .aura1${coin.id} { animation: pulse${coin.id} 2s ease-in-out infinite; }
+                .aura2${coin.id} { animation: pulse2${coin.id} 2s ease-in-out infinite 0.5s; }
+              </style>
             </defs>
-            <circle cx="30" cy="30" r="25" fill="url(#grad${coin.id})" stroke="#d97706" stroke-width="3"/>
-            <text x="30" y="38" font-size="20" font-weight="bold" fill="white" text-anchor="middle">${coin.value}</text>
-            <polygon points="30,55 22,60 38,60" fill="#d97706"/>
+            <!-- Pulsating auras -->
+            <circle class="aura2${coin.id}" cx="50" cy="40" r="40" fill="#fbbf24" opacity="0.4"/>
+            <circle class="aura1${coin.id}" cx="50" cy="40" r="35" fill="#fbbf24" opacity="0.6"/>
+            <!-- Main coin -->
+            <circle cx="50" cy="40" r="25" fill="url(#grad${coin.id})" stroke="#d97706" stroke-width="3"/>
+            <text x="50" y="48" font-size="20" font-weight="bold" fill="white" text-anchor="middle">${coin.value}</text>
+            <!-- Pointer -->
+            <polygon points="50,75 42,80 58,80" fill="#d97706"/>
           </svg>
         `),
-        scaledSize: new google.maps.Size(60, 70),
-        anchor: new google.maps.Point(30, 70),
+        scaledSize: new google.maps.Size(100, 100),
+        anchor: new google.maps.Point(50, 90),
       };
 
       // Create marker
