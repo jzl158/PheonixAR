@@ -100,6 +100,7 @@ export function MapView() {
 
     console.log('🗺️ Initializing Google Maps...');
     console.log('📍 Position:', position);
+    console.log('🗺️ Map ID:', import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'Not set');
 
     const newMap = new google.maps.Map(mapRef.current, {
       center: { lat: position.lat, lng: position.lng },
@@ -108,12 +109,17 @@ export function MapView() {
       heading: 0,
       mapTypeId: 'satellite',
       disableDefaultUI: true,
-      gestureHandling: 'greedy',
+      gestureHandling: 'greedy', // Enable all touch gestures
       clickableIcons: false,
-      rotateControl: true, // Enable rotation control
-      // Enable all 3D gestures
+      rotateControl: false, // We have custom rotate button
       fullscreenControl: false,
-      mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID, // Optional: Use 3D-enabled Map ID
+      isFractionalZoomEnabled: true, // Enable smoother zooming
+      // Map ID is CRITICAL for 3D buildings and gestures
+      mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || undefined,
+      // These options ensure 3D gestures work
+      minZoom: 10,
+      maxZoom: 22,
+      restriction: undefined, // Allow free panning
     });
 
     console.log('✅ Map initialized!');
@@ -552,13 +558,24 @@ export function MapView() {
         <span className="text-lg font-bold">🪙 {coins.length} coins nearby</span>
       </div>
 
+      {/* 3D Gesture Help */}
+      {map && (map.getTilt() || 0) > 0 && (
+        <div className="absolute bottom-44 left-1/2 transform -translate-x-1/2 z-20 bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-xl text-xs text-center pointer-events-none">
+          <div className="font-bold mb-1">🖐️ 3D Controls</div>
+          <div>Two fingers: Drag to tilt • Twist to rotate</div>
+        </div>
+      )}
+
       {/* Debug info */}
-      <div className="absolute top-4 left-4 z-50 bg-black/80 text-white text-xs p-3 rounded-lg backdrop-blur-sm">
+      <div className="absolute top-4 left-4 z-50 bg-black/80 text-white text-xs p-3 rounded-lg backdrop-blur-sm max-w-xs">
         <div className="font-bold mb-1">Debug Info:</div>
         <div>Lat: {position.lat.toFixed(6)}</div>
         <div>Lng: {position.lng.toFixed(6)}</div>
         <div>Coins: {coins.length}</div>
         <div>Maps: {mapsLoaded ? '✓' : '✗'}</div>
+        <div>Map ID: {import.meta.env.VITE_GOOGLE_MAPS_MAP_ID ? '✓' : '✗'}</div>
+        <div>Tilt: {map?.getTilt() || 0}°</div>
+        <div>Heading: {map?.getHeading() || 0}°</div>
       </div>
     </div>
   );
