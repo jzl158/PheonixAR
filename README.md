@@ -41,6 +41,8 @@ Then edit `.env` and add your API keys:
 
 ```env
 VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key
+VITE_GOOGLE_MAPS_MAP_ID=your_map_id_here  # Optional - for enhanced 3D buildings
+VITE_EIGHTH_WALL_APP_KEY=your_8thwall_app_key  # Optional - for AR features
 VITE_FIREBASE_API_KEY=your_firebase_api_key
 VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=your_project_id
@@ -48,6 +50,23 @@ VITE_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
 ```
+
+#### Enabling Enhanced 3D Buildings (Optional)
+
+For the best 3D building experience with photorealistic tiles:
+
+1. Go to [Google Cloud Console - Map Management](https://console.cloud.google.com/google/maps-apis/studio/maps)
+2. Click "Create Map ID"
+3. Give it a name (e.g., "SkylARk 3D Map")
+4. Select "JavaScript" as the map type
+5. **Important:** Enable the "3D" option
+6. Click "Save"
+7. Copy the Map ID and add it to your `.env` file as `VITE_GOOGLE_MAPS_MAP_ID`
+
+With a 3D-enabled Map ID, you'll get:
+- Photorealistic 3D buildings
+- Better touch gesture controls for rotating buildings
+- Higher quality satellite imagery
 
 ### 3. Firebase Setup
 

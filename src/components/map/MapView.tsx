@@ -103,13 +103,17 @@ export function MapView() {
 
     const newMap = new google.maps.Map(mapRef.current, {
       center: { lat: position.lat, lng: position.lng },
-      zoom: 18,
+      zoom: 19, // Increased zoom for better 3D detail
       tilt: 67.5,
       heading: 0,
       mapTypeId: 'satellite',
       disableDefaultUI: true,
       gestureHandling: 'greedy',
       clickableIcons: false,
+      rotateControl: true, // Enable rotation control
+      // Enable all 3D gestures
+      fullscreenControl: false,
+      mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID, // Optional: Use 3D-enabled Map ID
     });
 
     console.log('✅ Map initialized!');
@@ -504,12 +508,31 @@ export function MapView() {
           onClick={() => {
             if (map) {
               const currentTilt = map.getTilt();
-              map.setTilt(currentTilt === 0 ? 67.5 : 0);
+              if (currentTilt === 0) {
+                // Enable full 3D mode
+                map.setTilt(67.5);
+                map.setZoom(19);
+              } else {
+                // Disable 3D mode
+                map.setTilt(0);
+                map.setZoom(17);
+              }
             }
           }}
           className="bg-black/70 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-black/80 transition-all active:scale-95"
         >
-          3D View
+          {map?.getTilt() === 0 ? '🏙️ 3D View' : '🗺️ 2D View'}
+        </button>
+        <button
+          onClick={() => {
+            if (map) {
+              const currentHeading = map.getHeading() || 0;
+              map.setHeading((currentHeading + 90) % 360);
+            }
+          }}
+          className="bg-black/70 backdrop-blur-md text-white p-3 rounded-full shadow-lg hover:bg-black/80 transition-all active:scale-95"
+        >
+          <span className="text-xl">🔄</span>
         </button>
         <button
           onClick={() => {
