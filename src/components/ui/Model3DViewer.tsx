@@ -8,6 +8,36 @@ interface Model3DViewerProps {
   onClose: () => void;
 }
 
+interface Coin {
+  id: string;
+  position: { lat: number; lng: number };
+  value: number;
+}
+
+// Generate random coins around a center point
+function generateCoins(center: [number, number], count: number = 10): Coin[] {
+  const coins: Coin[] = [];
+  const COIN_VALUES = [1, 3, 5, 7, 10, 15, 20, 25];
+  const radius = 0.001; // Approximately 100 meters
+
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * 2 * Math.PI;
+    const distance = Math.sqrt(Math.random()) * radius;
+
+    const lat = center[1] + distance * Math.cos(angle);
+    const lng = center[0] + distance * Math.sin(angle);
+    const value = COIN_VALUES[Math.floor(Math.random() * COIN_VALUES.length)];
+
+    coins.push({
+      id: `coin_${i}`,
+      position: { lat, lng },
+      value,
+    });
+  }
+
+  return coins;
+}
+
 export function Model3DViewer({ onClose }: Model3DViewerProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
@@ -139,6 +169,123 @@ export function Model3DViewer({ onClose }: Model3DViewerProps) {
 
     map.on('style.load', () => {
       map.addLayer(customLayer);
+
+      // Generate and add coins to the map
+      const coins = generateCoins([148.9819, -35.3981], 15);
+
+      coins.forEach((coin) => {
+        // Create coin marker with pulsating aura
+        const el = document.createElement('div');
+        el.className = 'coin-marker-3d';
+        el.style.width = '60px';
+        el.style.height = '60px';
+        el.style.cursor = 'pointer';
+
+        // Create coin with pulsating aura
+        if (coin.value === 1) {
+          // Special styling for 1 coins
+          el.innerHTML = `
+            <div style="position: relative; width: 60px; height: 60px;">
+              <div class="coin-aura" style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 50px;
+                height: 50px;
+                background: radial-gradient(circle, rgba(251, 191, 36, 0.6), transparent);
+                border-radius: 50%;
+                animation: pulse-aura 2s ease-in-out infinite;
+              "></div>
+              <div style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 40px;
+                height: 40px;
+                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                border: 3px solid #d97706;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                color: white;
+                font-size: 20px;
+                box-shadow: 0 4px 12px rgba(251, 191, 36, 0.7);
+                z-index: 1;
+              ">1</div>
+            </div>
+          `;
+        } else {
+          // Regular coins
+          el.innerHTML = `
+            <div style="position: relative; width: 60px; height: 60px;">
+              <div class="coin-aura" style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 50px;
+                height: 50px;
+                background: radial-gradient(circle, rgba(251, 191, 36, 0.6), transparent);
+                border-radius: 50%;
+                animation: pulse-aura 2s ease-in-out infinite;
+              "></div>
+              <div style="
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 40px;
+                height: 40px;
+                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                border: 3px solid #d97706;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: bold;
+                color: white;
+                font-size: 16px;
+                box-shadow: 0 4px 12px rgba(251, 191, 36, 0.7);
+                z-index: 1;
+              ">${coin.value}</div>
+            </div>
+          `;
+        }
+
+        // Add click handler
+        el.addEventListener('click', () => {
+          alert(`Collected ${coin.value} GSKY!`);
+          el.remove();
+        });
+
+        // Add marker to map
+        new mapboxgl.Marker({ element: el })
+          .setLngLat([coin.position.lng, coin.position.lat])
+          .addTo(map);
+      });
+
+      // Add CSS animation for pulsating aura
+      if (!document.getElementById('coin-aura-animation-3d')) {
+        const style = document.createElement('style');
+        style.id = 'coin-aura-animation-3d';
+        style.textContent = `
+          @keyframes pulse-aura {
+            0%, 100% {
+              transform: translate(-50%, -50%) scale(1);
+              opacity: 0.6;
+            }
+            50% {
+              transform: translate(-50%, -50%) scale(1.3);
+              opacity: 0.2;
+            }
+          }
+        `;
+        document.head.appendChild(style);
+      }
     });
 
     // Cleanup
