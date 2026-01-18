@@ -4,10 +4,12 @@ import { Button } from '../ui/Button';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
+import { Model3DViewer } from '../ui/Model3DViewer';
 
 export function PhoneInput() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [show3DViewer, setShow3DViewer] = useState(false);
   const { sendOTP } = useAuth();
   const navigate = useNavigate();
   const { setUser } = useAuthStore();
@@ -67,6 +69,13 @@ export function PhoneInput() {
       </div>
 
       <div className="space-y-4">
+        <button
+          onClick={() => setShow3DViewer(true)}
+          className="w-full bg-primary-600 hover:bg-primary-700 text-white py-3 rounded-full font-bold text-sm transition-all mb-4"
+        >
+          🌍 View 3D Model
+        </button>
+
         <p className="text-center text-sm text-gray-400 mb-6">
           We care about <span className="text-primary-500">your privacy</span> and won't share it.
         </p>
@@ -86,6 +95,9 @@ export function PhoneInput() {
       </div>
 
       <div id="recaptcha-container"></div>
+
+      {/* 3D Model Viewer Modal */}
+      {show3DViewer && <Model3DViewer onClose={() => setShow3DViewer(false)} />}
     </div>
   );
 }
