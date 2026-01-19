@@ -107,7 +107,7 @@ export function MapView() {
       zoom: 19, // Increased zoom for better 3D detail
       tilt: 67.5,
       heading: 0,
-      mapTypeId: 'satellite',
+      mapTypeId: 'hybrid', // Hybrid shows 3D buildings better than satellite
       disableDefaultUI: true,
       gestureHandling: 'greedy', // Enable all touch gestures
       clickableIcons: false,
@@ -121,6 +121,10 @@ export function MapView() {
       maxZoom: 22,
       restriction: undefined, // Allow free panning
     });
+
+    // Force 3D buildings to render
+    console.log('🏢 Enabling 3D buildings...');
+    newMap.setTilt(67.5);
 
     console.log('✅ Map initialized!');
     setMap(newMap);
@@ -542,6 +546,20 @@ export function MapView() {
         </button>
         <button
           onClick={() => {
+            if (map) {
+              const currentType = map.getMapTypeId();
+              const nextType = currentType === 'hybrid' ? 'satellite' : currentType === 'satellite' ? 'roadmap' : 'hybrid';
+              map.setMapTypeId(nextType);
+              console.log('🗺️ Map type changed to:', nextType);
+            }
+          }}
+          className="bg-black/70 backdrop-blur-md text-white p-3 rounded-full shadow-lg hover:bg-black/80 transition-all active:scale-95"
+          title="Toggle map style"
+        >
+          <span className="text-xl">🛰️</span>
+        </button>
+        <button
+          onClick={() => {
             if (map && position) {
               map.setCenter({ lat: position.lat, lng: position.lng });
               map.setZoom(18);
@@ -574,8 +592,10 @@ export function MapView() {
         <div>Coins: {coins.length}</div>
         <div>Maps: {mapsLoaded ? '✓' : '✗'}</div>
         <div>Map ID: {import.meta.env.VITE_GOOGLE_MAPS_MAP_ID ? '✓' : '✗'}</div>
+        <div>Map Type: {map?.getMapTypeId() || 'loading'}</div>
         <div>Tilt: {map?.getTilt() || 0}°</div>
         <div>Heading: {map?.getHeading() || 0}°</div>
+        <div>Zoom: {map?.getZoom()?.toFixed(1) || 0}</div>
       </div>
     </div>
   );
