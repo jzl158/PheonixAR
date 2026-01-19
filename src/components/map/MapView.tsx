@@ -22,6 +22,7 @@ export function MapView() {
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [arLoaded, setArLoaded] = useState(false);
+  const [debugMode, setDebugMode] = useState(false);
 
   // Load 8th Wall AR script
   useEffect(() => {
@@ -107,11 +108,11 @@ export function MapView() {
       zoom: 19, // Increased zoom for better 3D detail
       tilt: 67.5,
       heading: 0,
-      mapTypeId: 'hybrid', // Hybrid shows 3D buildings better than satellite
+      mapTypeId: 'roadmap', // Roadmap default with 3D buildings
       disableDefaultUI: true,
       gestureHandling: 'greedy', // Enable all touch gestures
       clickableIcons: false,
-      rotateControl: false, // We have custom rotate button
+      rotateControl: false,
       fullscreenControl: false,
       isFractionalZoomEnabled: true, // Enable smoother zooming
       // Map ID is CRITICAL for 3D buildings and gestures
@@ -514,61 +515,36 @@ export function MapView() {
         >
           {arLoaded ? '📱 Open AR' : '⏳ Loading AR...'}
         </button>
+
         <button
-          onClick={() => {
-            if (map) {
-              const currentTilt = map.getTilt();
-              if (currentTilt === 0) {
-                // Enable full 3D mode
-                map.setTilt(67.5);
-                map.setZoom(19);
-              } else {
-                // Disable 3D mode
-                map.setTilt(0);
-                map.setZoom(17);
+          onClick={() => setDebugMode(!debugMode)}
+          className="bg-black/70 backdrop-blur-md text-white p-3 rounded-full shadow-lg hover:bg-black/80 transition-all active:scale-95"
+          title="Toggle Debug Mode"
+        >
+          <span className="text-xl">{debugMode ? '🔧' : '⚙️'}</span>
+        </button>
+
+        {debugMode && (
+          <button
+            onClick={() => {
+              if (map) {
+                const currentTilt = map.getTilt();
+                if (currentTilt === 0) {
+                  // Enable full 3D mode
+                  map.setTilt(67.5);
+                  map.setZoom(19);
+                } else {
+                  // Disable 3D mode
+                  map.setTilt(0);
+                  map.setZoom(17);
+                }
               }
-            }
-          }}
-          className="bg-black/70 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-black/80 transition-all active:scale-95"
-        >
-          {map?.getTilt() === 0 ? '🏙️ 3D View' : '🗺️ 2D View'}
-        </button>
-        <button
-          onClick={() => {
-            if (map) {
-              const currentHeading = map.getHeading() || 0;
-              map.setHeading((currentHeading + 90) % 360);
-            }
-          }}
-          className="bg-black/70 backdrop-blur-md text-white p-3 rounded-full shadow-lg hover:bg-black/80 transition-all active:scale-95"
-        >
-          <span className="text-xl">🔄</span>
-        </button>
-        <button
-          onClick={() => {
-            if (map) {
-              const currentType = map.getMapTypeId();
-              const nextType = currentType === 'hybrid' ? 'satellite' : currentType === 'satellite' ? 'roadmap' : 'hybrid';
-              map.setMapTypeId(nextType);
-              console.log('🗺️ Map type changed to:', nextType);
-            }
-          }}
-          className="bg-black/70 backdrop-blur-md text-white p-3 rounded-full shadow-lg hover:bg-black/80 transition-all active:scale-95"
-          title="Toggle map style"
-        >
-          <span className="text-xl">🛰️</span>
-        </button>
-        <button
-          onClick={() => {
-            if (map && position) {
-              map.setCenter({ lat: position.lat, lng: position.lng });
-              map.setZoom(18);
-            }
-          }}
-          className="bg-black/70 backdrop-blur-md text-white p-3 rounded-full shadow-lg hover:bg-black/80 transition-all active:scale-95"
-        >
-          <span className="text-2xl">📍</span>
-        </button>
+            }}
+            className="bg-black/70 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-black/80 transition-all active:scale-95"
+          >
+            {(map?.getTilt() || 0) === 0 ? '🏙️ 3D View' : '🗺️ 2D View'}
+          </button>
+        )}
       </div>
 
       {/* Coin Counter */}
@@ -576,27 +552,21 @@ export function MapView() {
         <span className="text-lg font-bold">🪙 {coins.length} coins nearby</span>
       </div>
 
-      {/* 3D Gesture Help */}
-      {map && (map.getTilt() || 0) > 0 && (
-        <div className="absolute bottom-44 left-1/2 transform -translate-x-1/2 z-20 bg-black/80 backdrop-blur-sm text-white px-4 py-2 rounded-lg shadow-xl text-xs text-center pointer-events-none">
-          <div className="font-bold mb-1">🖐️ 3D Controls</div>
-          <div>Two fingers: Drag to tilt • Twist to rotate</div>
+      {/* Debug info - only visible in debug mode */}
+      {debugMode && (
+        <div className="absolute top-4 left-4 z-50 bg-black/80 text-white text-xs p-3 rounded-lg backdrop-blur-sm max-w-xs">
+          <div className="font-bold mb-1">Debug Info:</div>
+          <div>Lat: {position.lat.toFixed(6)}</div>
+          <div>Lng: {position.lng.toFixed(6)}</div>
+          <div>Coins: {coins.length}</div>
+          <div>Maps: {mapsLoaded ? '✓' : '✗'}</div>
+          <div>Map ID: {import.meta.env.VITE_GOOGLE_MAPS_MAP_ID ? '✓' : '✗'}</div>
+          <div>Map Type: {map?.getMapTypeId() || 'loading'}</div>
+          <div>Tilt: {map?.getTilt() || 0}°</div>
+          <div>Heading: {map?.getHeading() || 0}°</div>
+          <div>Zoom: {map?.getZoom()?.toFixed(1) || 0}</div>
         </div>
       )}
-
-      {/* Debug info */}
-      <div className="absolute top-4 left-4 z-50 bg-black/80 text-white text-xs p-3 rounded-lg backdrop-blur-sm max-w-xs">
-        <div className="font-bold mb-1">Debug Info:</div>
-        <div>Lat: {position.lat.toFixed(6)}</div>
-        <div>Lng: {position.lng.toFixed(6)}</div>
-        <div>Coins: {coins.length}</div>
-        <div>Maps: {mapsLoaded ? '✓' : '✗'}</div>
-        <div>Map ID: {import.meta.env.VITE_GOOGLE_MAPS_MAP_ID ? '✓' : '✗'}</div>
-        <div>Map Type: {map?.getMapTypeId() || 'loading'}</div>
-        <div>Tilt: {map?.getTilt() || 0}°</div>
-        <div>Heading: {map?.getHeading() || 0}°</div>
-        <div>Zoom: {map?.getZoom()?.toFixed(1) || 0}</div>
-      </div>
     </div>
   );
 }
