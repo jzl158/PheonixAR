@@ -148,40 +148,77 @@ export function MapView() {
     // Wait for the element to be fully ready
     const initMap = () => {
       try {
+        console.log('🔧 Setting 3D map attributes...');
+        console.log('Element:', map3d);
+        console.log('Position:', position);
+
         // Set 3D map attributes - center must be an object when set via JS
         map3d.center = { lat: position.lat, lng: position.lng, altitude: 0 };
-        map3d.range = 2000; // Number, not string
-        map3d.tilt = 75; // Number, not string
-        map3d.heading = 0; // Number, not string
+        map3d.range = 2000;
+        map3d.tilt = 75;
+        map3d.heading = 0;
         map3d.defaultLabelsDisabled = false;
 
-        console.log('✅ 3D Map attributes set', map3d.center);
+        console.log('✅ 3D Map attributes set');
+        console.log('Center:', map3d.center);
+        console.log('Range:', map3d.range);
+        console.log('Tilt:', map3d.tilt);
 
         // Listen for map load event to get innerMap for markers
         const handleLoad = () => {
-          console.log('✅ 3D Map loaded event fired');
+          console.log('🎉 gmp-load event fired!');
+          console.log('map3d element:', map3d);
+          console.log('map3d.innerMap:', map3d.innerMap);
+
           if (map3d.innerMap) {
-            console.log('✅ InnerMap available');
+            console.log('✅ InnerMap available, setting map state');
             setMap(map3d.innerMap);
           } else {
-            console.warn('⚠️ InnerMap not available yet, retrying...');
+            console.warn('⚠️ InnerMap not available yet, will retry...');
             setTimeout(() => {
+              console.log('🔄 Retry - checking innerMap:', map3d.innerMap);
               if (map3d.innerMap) {
+                console.log('✅ InnerMap available on retry');
                 setMap(map3d.innerMap);
+              } else {
+                console.error('❌ InnerMap still not available');
               }
             }, 1000);
           }
         };
 
         map3d.addEventListener('gmp-load', handleLoad);
+        console.log('👂 Added gmp-load event listener');
 
-        // Fallback: Try to get innerMap after a delay if event doesn't fire
+        // Check if already loaded
+        if (map3d.innerMap) {
+          console.log('✅ InnerMap already available immediately');
+          setMap(map3d.innerMap);
+        }
+
+        // Fallback: Try to get innerMap after delays
         setTimeout(() => {
-          if (!map && map3d.innerMap) {
-            console.log('✅ InnerMap available via fallback');
-            setMap(map3d.innerMap);
+          if (!map) {
+            console.log('⏰ 2s fallback - checking innerMap:', map3d.innerMap);
+            if (map3d.innerMap) {
+              console.log('✅ InnerMap available via 2s fallback');
+              setMap(map3d.innerMap);
+            }
           }
         }, 2000);
+
+        setTimeout(() => {
+          if (!map) {
+            console.log('⏰ 5s fallback - checking innerMap:', map3d.innerMap);
+            if (map3d.innerMap) {
+              console.log('✅ InnerMap available via 5s fallback');
+              setMap(map3d.innerMap);
+            } else {
+              console.error('❌ InnerMap not available after 5 seconds');
+              console.error('map3d properties:', Object.keys(map3d));
+            }
+          }
+        }, 5000);
       } catch (error) {
         console.error('❌ Error initializing 3D map:', error);
       }
