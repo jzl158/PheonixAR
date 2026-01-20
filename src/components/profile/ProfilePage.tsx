@@ -53,7 +53,7 @@ const MOCK_QUESTS: Quest[] = [
 type OfferCategory = 'unused' | 'used' | 'expired' | 'all';
 
 export function ProfilePage({ onClose }: ProfilePageProps) {
-  const { userCoins, phoenixCoins, novaCoins, novaStreakDays } = useGameStore();
+  const { userCoins, phoenixCoins, novaCoins: _novaCoins, novaStreakDays } = useGameStore();
   const [selectedTab, setSelectedTab] = useState<'quests' | 'offers'>('quests');
   const [offerCategory, setOfferCategory] = useState<OfferCategory>('unused');
 

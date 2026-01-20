@@ -6,7 +6,7 @@ interface TopBarProps {
 }
 
 export function TopBar({ onNotificationClick, onProfileClick }: TopBarProps) {
-  const { userCoins, collectedCoinIds, phoenixCoins, novaCoins } = useGameStore();
+  const { userCoins, collectedCoinIds: _collectedCoinIds, phoenixCoins, novaCoins } = useGameStore();
 
   return (
     <div className="absolute top-0 left-0 right-0 z-10 flex justify-between items-center px-4 py-3 safe-top bg-gradient-to-b from-black/50 to-transparent">

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { PhoenixCoin, NovaCoin } from '../types/locations';
 import { generatePhoenixCoins } from '../utils/phoenixCoinGenerator';
-import { generateNovaCoins, calculateNovaStreak } from '../utils/novaCoinGenerator';
+import { generateNovaCoins, calculateNovaStreak as _calculateNovaStreak } from '../utils/novaCoinGenerator';
 import { useGameStore } from '../store/gameStore';
 
 interface SpecialCoinsState {
@@ -17,9 +17,9 @@ export function useSpecialCoins(userPosition: { lat: number; lng: number } | nul
 
   const {
     addPoints,
-    phoenixCoins: phoenixCoinCount,
+    phoenixCoins: _phoenixCoinCount,
     addPhoenixCoin,
-    novaCoins: novaCoinCount,
+    novaCoins: _novaCoinCount,
     addNovaCoin,
   } = useGameStore();
 

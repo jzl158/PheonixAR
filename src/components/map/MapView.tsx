@@ -82,11 +82,11 @@ export function MapView() {
   };
 
   // State for all location types
-  const [giftCards] = useState(getAllGiftCards());
-  const [arExperiences] = useState(getAllARExperiences());
-  const [terminusStops] = useState(getAllTerminusDAOStops());
-  const [grillz] = useState(getAllGrillz());
-  const [lpwChicken] = useState(getAllLPWChicken());
+  const [giftCards, _setGiftCards] = useState(getAllGiftCards());
+  const [arExperiences, _setARExperiences] = useState(getAllARExperiences());
+  const [terminusStops, _setTerminusStops] = useState(getAllTerminusDAOStops());
+  const [grillz, _setGrillz] = useState(getAllGrillz());
+  const [lpwChicken, _setLPWChicken] = useState(getAllLPWChicken());
 
   // Load homebases on mount
   useEffect(() => {
