@@ -15,11 +15,16 @@ import { PhoenixOffersCards } from '../offers/PhoenixOffersCards';
 import { NotificationPanel } from '../notifications/NotificationPanel';
 import { Leaderboard } from '../leaderboard/Leaderboard';
 
-// Declare Google Maps and 8th Wall types
+// Declare Google Maps, 3D Maps, and 8th Wall types
 declare global {
   interface Window {
     google: any;
     XR8?: any;
+  }
+  namespace JSX {
+    interface IntrinsicElements {
+      'gmp-map-3d': any;
+    }
   }
 }
 
@@ -121,40 +126,28 @@ export function MapView() {
     };
   }, []);
 
-  // Initialize map when API loads and position is available
+  // Initialize 3D map when API loads and position is available
   useEffect(() => {
     if (!mapRef.current || !position || !mapsLoaded || map) return;
 
-    console.log('🗺️ Initializing Google Maps...');
+    console.log('🗺️ Initializing Google 3D Map...');
     console.log('📍 Position:', position);
-    console.log('🗺️ Map ID:', import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'Not set');
 
-    const newMap = new google.maps.Map(mapRef.current, {
-      center: { lat: position.lat, lng: position.lng },
-      zoom: 19, // Increased zoom for better 3D detail
-      tilt: 67.5,
-      heading: 0,
-      mapTypeId: 'roadmap', // Roadmap default with 3D buildings
-      disableDefaultUI: true,
-      gestureHandling: 'greedy', // Enable all touch gestures
-      clickableIcons: false,
-      rotateControl: false,
-      fullscreenControl: false,
-      isFractionalZoomEnabled: true, // Enable smoother zooming
-      // Map ID is CRITICAL for 3D buildings and gestures
-      mapId: import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || undefined,
-      // These options ensure 3D gestures work
-      minZoom: 10,
-      maxZoom: 22,
-      restriction: undefined, // Allow free panning
+    const map3d = mapRef.current as any;
+
+    // Set 3D map attributes
+    map3d.center = `${position.lat}, ${position.lng}`;
+    map3d.range = '2000'; // Distance from camera to center point in meters
+    map3d.tilt = '75'; // Tilt angle
+    map3d.heading = '0'; // Initial heading
+    map3d.mode = 'hybrid'; // Hybrid mode (satellite + 3D buildings)
+
+    // Get the underlying map instance for adding markers
+    map3d.addEventListener('gmp-load', () => {
+      console.log('✅ 3D Map loaded!');
+      const mapInstance = map3d.innerMap;
+      setMap(mapInstance);
     });
-
-    // Force 3D buildings to render
-    console.log('🏢 Enabling 3D buildings...');
-    newMap.setTilt(67.5);
-
-    console.log('✅ Map initialized!');
-    setMap(newMap);
   }, [mapsLoaded, position, map]);
 
   // Add user location marker
@@ -934,8 +927,8 @@ export function MapView() {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden" style={{ background: '#1a1a1a' }}>
-      {/* Google Maps Container */}
-      <div
+      {/* Google 3D Maps Container */}
+      <gmp-map-3d
         ref={mapRef}
         style={{
           width: '100%',
@@ -955,9 +948,10 @@ export function MapView() {
       {/* Expandable Menu Bar */}
       <ExpandableMenu
         onPinClick={() => {
-          // Recenter map on user location
-          if (map && position) {
-            map.panTo({ lat: position.lat, lng: position.lng });
+          // Recenter 3D map on user location
+          if (mapRef.current && position) {
+            const map3d = mapRef.current as any;
+            map3d.center = `${position.lat}, ${position.lng}`;
           }
         }}
         onPhoenixClick={() => setActivePanel('offers')}
@@ -992,22 +986,26 @@ export function MapView() {
         {debugMode && (
           <button
             onClick={() => {
-              if (map) {
-                const currentTilt = map.getTilt();
-                if (currentTilt === 0) {
-                  // Enable full 3D mode
-                  map.setTilt(67.5);
-                  map.setZoom(19);
+              if (mapRef.current) {
+                const map3d = mapRef.current as any;
+                const currentTilt = parseInt(map3d.tilt || '75');
+                if (currentTilt > 45) {
+                  // Low tilt (more top-down)
+                  map3d.tilt = '15';
+                  map3d.range = '1000';
                 } else {
-                  // Disable 3D mode
-                  map.setTilt(0);
-                  map.setZoom(17);
+                  // High tilt (more perspective)
+                  map3d.tilt = '75';
+                  map3d.range = '2000';
                 }
               }
             }}
             className="bg-black/70 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-black/80 transition-all active:scale-95"
           >
-            {(map?.getTilt() || 0) === 0 ? '🏙️ 3D View' : '🗺️ 2D View'}
+            {(() => {
+              const currentTilt = parseInt((mapRef.current as any)?.tilt || '75');
+              return currentTilt > 45 ? '🗺️ Top View' : '🏙️ 3D View';
+            })()}
           </button>
         )}
       </div>
@@ -1020,16 +1018,16 @@ export function MapView() {
       {/* Debug info - only visible in debug mode */}
       {debugMode && (
         <div className="absolute top-4 left-4 z-50 bg-black/80 text-white text-xs p-3 rounded-lg backdrop-blur-sm max-w-xs">
-          <div className="font-bold mb-1">Debug Info:</div>
+          <div className="font-bold mb-1">Debug Info (3D Map):</div>
           <div>Lat: {position.lat.toFixed(6)}</div>
           <div>Lng: {position.lng.toFixed(6)}</div>
           <div>Coins: {coins.length}</div>
-          <div>Maps: {mapsLoaded ? '✓' : '✗'}</div>
-          <div>Map ID: {import.meta.env.VITE_GOOGLE_MAPS_MAP_ID ? '✓' : '✗'}</div>
-          <div>Map Type: {map?.getMapTypeId() || 'loading'}</div>
-          <div>Tilt: {map?.getTilt() || 0}°</div>
-          <div>Heading: {map?.getHeading() || 0}°</div>
-          <div>Zoom: {map?.getZoom()?.toFixed(1) || 0}</div>
+          <div>Maps 3D: {mapsLoaded ? '✓' : '✗'}</div>
+          <div>Mode: {(mapRef.current as any)?.mode || 'hybrid'}</div>
+          <div>Tilt: {(mapRef.current as any)?.tilt || '75'}°</div>
+          <div>Heading: {(mapRef.current as any)?.heading || '0'}°</div>
+          <div>Range: {(mapRef.current as any)?.range || '2000'}m</div>
+          <div>Center: {(mapRef.current as any)?.center || 'loading'}</div>
         </div>
       )}
 
