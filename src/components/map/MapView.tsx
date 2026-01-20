@@ -105,11 +105,13 @@ export function MapView() {
     console.log('🍗 Loaded', lpwChicken.length, 'LPW Chicken locations');
   }, [setHomebases]);
 
-  // Wait for Google Maps to load
+  // Wait for Google Maps 3D to load
   useEffect(() => {
     const checkMapsLoaded = setInterval(() => {
-      if (window.google && window.google.maps) {
-        console.log('✅ Google Maps API ready!');
+      // Check if both the API and the gmp-map-3d custom element are defined
+      if (window.google && window.google.maps && customElements.get('gmp-map-3d')) {
+        console.log('✅ Google Maps 3D API ready!');
+        console.log('✅ gmp-map-3d custom element registered');
         setMapsLoaded(true);
         clearInterval(checkMapsLoaded);
       }
@@ -117,8 +119,13 @@ export function MapView() {
 
     const timeout = setTimeout(() => {
       clearInterval(checkMapsLoaded);
-      console.error('⏱️ Timeout waiting for Google Maps');
-    }, 10000);
+      if (!window.google) {
+        console.error('⏱️ Timeout: Google Maps API failed to load');
+      } else if (!customElements.get('gmp-map-3d')) {
+        console.error('⏱️ Timeout: gmp-map-3d custom element not registered');
+        console.error('Check that libraries=maps3d is in the script URL');
+      }
+    }, 15000);
 
     return () => {
       clearInterval(checkMapsLoaded);
@@ -128,26 +135,64 @@ export function MapView() {
 
   // Initialize 3D map when API loads and position is available
   useEffect(() => {
-    if (!mapRef.current || !position || !mapsLoaded || map) return;
+    if (!mapRef.current || !position || !mapsLoaded) return;
+
+    // Prevent double initialization
+    if (map) return;
 
     console.log('🗺️ Initializing Google 3D Map...');
     console.log('📍 Position:', position);
 
     const map3d = mapRef.current as any;
 
-    // Set 3D map attributes
-    map3d.center = `${position.lat}, ${position.lng}`;
-    map3d.range = '2000'; // Distance from camera to center point in meters
-    map3d.tilt = '75'; // Tilt angle
-    map3d.heading = '0'; // Initial heading
-    map3d.mode = 'hybrid'; // Hybrid mode (satellite + 3D buildings)
+    // Wait for the element to be fully ready
+    const initMap = () => {
+      try {
+        // Set 3D map attributes
+        map3d.center = `${position.lat}, ${position.lng}`;
+        map3d.range = '2000';
+        map3d.tilt = '75';
+        map3d.heading = '0';
+        map3d.defaultLabelsDisabled = false;
 
-    // Get the underlying map instance for adding markers
-    map3d.addEventListener('gmp-load', () => {
-      console.log('✅ 3D Map loaded!');
-      const mapInstance = map3d.innerMap;
-      setMap(mapInstance);
-    });
+        console.log('✅ 3D Map attributes set');
+
+        // Listen for map load event to get innerMap for markers
+        const handleLoad = () => {
+          console.log('✅ 3D Map loaded event fired');
+          if (map3d.innerMap) {
+            console.log('✅ InnerMap available');
+            setMap(map3d.innerMap);
+          } else {
+            console.warn('⚠️ InnerMap not available yet, retrying...');
+            setTimeout(() => {
+              if (map3d.innerMap) {
+                setMap(map3d.innerMap);
+              }
+            }, 1000);
+          }
+        };
+
+        map3d.addEventListener('gmp-load', handleLoad);
+
+        // Fallback: Try to get innerMap after a delay if event doesn't fire
+        setTimeout(() => {
+          if (!map && map3d.innerMap) {
+            console.log('✅ InnerMap available via fallback');
+            setMap(map3d.innerMap);
+          }
+        }, 2000);
+      } catch (error) {
+        console.error('❌ Error initializing 3D map:', error);
+      }
+    };
+
+    // Give the element time to be ready
+    if (map3d.tagName === 'GMP-MAP-3D') {
+      initMap();
+    } else {
+      setTimeout(initMap, 500);
+    }
   }, [mapsLoaded, position, map]);
 
   // Add user location marker
@@ -930,6 +975,10 @@ export function MapView() {
       {/* Google 3D Maps Container */}
       <gmp-map-3d
         ref={mapRef}
+        center={position ? `${position.lat}, ${position.lng}` : '33.8541508, -84.381267'}
+        range="2000"
+        tilt="75"
+        heading="0"
         style={{
           width: '100%',
           height: '100%',
