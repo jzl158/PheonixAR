@@ -40,7 +40,8 @@ export function Leaderboard({ onClose }: LeaderboardProps) {
   };
 
   // Preserved for future use
-  const _getRankEmoji = (rank: number) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const getRankEmoji = (rank: number) => {
     if (rank === 1) return '🥇';
     if (rank === 2) return '🥈';
     if (rank === 3) return '🥉';
