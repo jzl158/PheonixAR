@@ -148,14 +148,14 @@ export function MapView() {
     // Wait for the element to be fully ready
     const initMap = () => {
       try {
-        // Set 3D map attributes
-        map3d.center = `${position.lat}, ${position.lng}`;
-        map3d.range = '2000';
-        map3d.tilt = '75';
-        map3d.heading = '0';
+        // Set 3D map attributes - center must be an object when set via JS
+        map3d.center = { lat: position.lat, lng: position.lng, altitude: 0 };
+        map3d.range = 2000; // Number, not string
+        map3d.tilt = 75; // Number, not string
+        map3d.heading = 0; // Number, not string
         map3d.defaultLabelsDisabled = false;
 
-        console.log('✅ 3D Map attributes set');
+        console.log('✅ 3D Map attributes set', map3d.center);
 
         // Listen for map load event to get innerMap for markers
         const handleLoad = () => {
@@ -1000,7 +1000,7 @@ export function MapView() {
           // Recenter 3D map on user location
           if (mapRef.current && position) {
             const map3d = mapRef.current as any;
-            map3d.center = `${position.lat}, ${position.lng}`;
+            map3d.center = { lat: position.lat, lng: position.lng, altitude: 0 };
           }
         }}
         onPhoenixClick={() => setActivePanel('offers')}
@@ -1037,22 +1037,22 @@ export function MapView() {
             onClick={() => {
               if (mapRef.current) {
                 const map3d = mapRef.current as any;
-                const currentTilt = parseInt(map3d.tilt || '75');
+                const currentTilt = map3d.tilt || 75;
                 if (currentTilt > 45) {
                   // Low tilt (more top-down)
-                  map3d.tilt = '15';
-                  map3d.range = '1000';
+                  map3d.tilt = 15;
+                  map3d.range = 1000;
                 } else {
                   // High tilt (more perspective)
-                  map3d.tilt = '75';
-                  map3d.range = '2000';
+                  map3d.tilt = 75;
+                  map3d.range = 2000;
                 }
               }
             }}
             className="bg-black/70 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-black/80 transition-all active:scale-95"
           >
             {(() => {
-              const currentTilt = parseInt((mapRef.current as any)?.tilt || '75');
+              const currentTilt = (mapRef.current as any)?.tilt || 75;
               return currentTilt > 45 ? '🗺️ Top View' : '🏙️ 3D View';
             })()}
           </button>
