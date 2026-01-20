@@ -1,10 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGeolocation } from '../../hooks/useGeolocation';
 import { useCoins } from '../../hooks/useCoins';
+import { useSpecialCoins } from '../../hooks/useSpecialCoins';
 import { useGameStore } from '../../store/gameStore';
 import { getAllHomebases } from '../../data/homebases';
+import { getAllGiftCards } from '../../data/giftCards';
+import { getAllARExperiences } from '../../data/arExperiences';
+import { getAllTerminusDAOStops } from '../../data/terminusDAO';
+import { getAllGrillz, getAllLPWChicken } from '../../data/atlantaGems';
 import { TopBar } from '../navigation/TopBar';
-import { BottomNav } from '../navigation/BottomNav';
+import { ExpandableMenu } from '../navigation/ExpandableMenu';
+import { ProfilePage } from '../profile/ProfilePage';
+import { PhoenixOffersCards } from '../offers/PhoenixOffersCards';
+import { NotificationPanel } from '../notifications/NotificationPanel';
+import { Leaderboard } from '../leaderboard/Leaderboard';
 
 // Declare Google Maps and 8th Wall types
 declare global {
@@ -17,12 +26,17 @@ declare global {
 export function MapView() {
   const { position, isLoading, error } = useGeolocation();
   const { coins, attemptCollectCoin } = useCoins(position);
+  const { phoenixCoins, novaCoins, attemptCollectPhoenixCoin, attemptCollectNovaCoin } = useSpecialCoins(position);
   const { homebases, setHomebases } = useGameStore();
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [arLoaded, setArLoaded] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
+
+  // UI Panel State
+  type ActivePanel = 'none' | 'profile' | 'offers' | 'leaderboard' | 'notifications' | 'friends' | 'chat';
+  const [activePanel, setActivePanel] = useState<ActivePanel>('none');
 
   // Load 8th Wall AR script
   useEffect(() => {
@@ -67,11 +81,23 @@ export function MapView() {
     }
   };
 
+  // State for all location types
+  const [giftCards, setGiftCards] = useState(getAllGiftCards());
+  const [arExperiences, setARExperiences] = useState(getAllARExperiences());
+  const [terminusStops, setTerminusStops] = useState(getAllTerminusDAOStops());
+  const [grillz, setGrillz] = useState(getAllGrillz());
+  const [lpwChicken, setLPWChicken] = useState(getAllLPWChicken());
+
   // Load homebases on mount
   useEffect(() => {
     const loadedHomebases = getAllHomebases();
     setHomebases(loadedHomebases);
     console.log('🏠 Loaded', loadedHomebases.length, 'homebases');
+    console.log('🎁 Loaded', giftCards.length, 'gift cards');
+    console.log('📱 Loaded', arExperiences.length, 'AR experiences');
+    console.log('🚉 Loaded', terminusStops.length, 'Terminus DAO stops');
+    console.log('✨ Loaded', grillz.length, 'Grillz locations');
+    console.log('🍗 Loaded', lpwChicken.length, 'LPW Chicken locations');
   }, [setHomebases]);
 
   // Wait for Google Maps to load
@@ -420,6 +446,429 @@ export function MapView() {
     };
   }, [map, homebases]);
 
+  // Render Phoenix Coins (RARE) as map markers
+  useEffect(() => {
+    if (!map || !phoenixCoins.length) return;
+
+    console.log('🔥 Rendering', phoenixCoins.length, 'Phoenix Coins (rare)');
+
+    const markers: google.maps.Marker[] = [];
+
+    phoenixCoins.forEach((coin) => {
+      // Create Phoenix Coin marker with fire theme
+      const iconConfig = {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="phoenixGrad${coin.id}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#f97316;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1" />
+              </linearGradient>
+              <style>
+                @keyframes phoenixPulse${coin.id} {
+                  0%, 100% { r: 35; opacity: 0.8; }
+                  50% { r: 48; opacity: 0.3; }
+                }
+                @keyframes phoenixFlame${coin.id} {
+                  0%, 100% { r: 40; opacity: 0.5; }
+                  50% { r: 52; opacity: 0.15; }
+                }
+                .phoenixAura1${coin.id} { animation: phoenixPulse${coin.id} 1.5s ease-in-out infinite; }
+                .phoenixAura2${coin.id} { animation: phoenixFlame${coin.id} 1.5s ease-in-out infinite 0.3s; }
+              </style>
+            </defs>
+            <!-- Intense pulsating fire auras -->
+            <circle class="phoenixAura2${coin.id}" cx="50" cy="40" r="40" fill="#f97316" opacity="0.5"/>
+            <circle class="phoenixAura1${coin.id}" cx="50" cy="40" r="35" fill="#ef4444" opacity="0.8"/>
+            <!-- Main Phoenix Coin with gradient -->
+            <circle cx="50" cy="40" r="28" fill="url(#phoenixGrad${coin.id})" stroke="#dc2626" stroke-width="4"/>
+            <!-- Phoenix symbol (stylized bird) -->
+            <path d="M 50 30 L 45 35 L 42 40 L 45 45 L 50 50 L 55 45 L 58 40 L 55 35 Z" fill="#fef3c7" stroke="#dc2626" stroke-width="1.5"/>
+            <text x="50" y="62" font-size="12" font-weight="bold" fill="#dc2626" text-anchor="middle">RARE</text>
+            <!-- Pointer -->
+            <polygon points="50,75 42,80 58,80" fill="#dc2626"/>
+          </svg>
+        `),
+        scaledSize: new google.maps.Size(100, 100),
+        anchor: new google.maps.Point(50, 90),
+      };
+
+      const marker = new google.maps.Marker({
+        position: { lat: coin.position.lat, lng: coin.position.lng },
+        map: map,
+        icon: iconConfig,
+        title: 'Phoenix Coin (RARE)',
+        zIndex: 500,
+      });
+
+      marker.addListener('click', async () => {
+        console.log('🔥 Phoenix Coin clicked');
+        const success = await attemptCollectPhoenixCoin(coin);
+        if (success) {
+          marker.setMap(null);
+        }
+      });
+
+      markers.push(marker);
+    });
+
+    return () => {
+      markers.forEach(marker => marker.setMap(null));
+    };
+  }, [map, phoenixCoins, attemptCollectPhoenixCoin]);
+
+  // Render Nova Coins (SEMI-RARE) as map markers
+  useEffect(() => {
+    if (!map || !novaCoins.length) return;
+
+    console.log('⭐ Rendering', novaCoins.length, 'Nova Coins (semi-rare)');
+
+    const markers: google.maps.Marker[] = [];
+
+    novaCoins.forEach((coin) => {
+      // Create Nova Coin marker with star/cosmic theme
+      const iconConfig = {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="100" height="100" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="novaGrad${coin.id}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1" />
+                <stop offset="50%" style="stop-color:#6366f1;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+              </linearGradient>
+              <style>
+                @keyframes novaPulse${coin.id} {
+                  0%, 100% { r: 35; opacity: 0.7; }
+                  50% { r: 45; opacity: 0.25; }
+                }
+                @keyframes novaGlow${coin.id} {
+                  0%, 100% { r: 40; opacity: 0.45; }
+                  50% { r: 50; opacity: 0.12; }
+                }
+                .novaAura1${coin.id} { animation: novaPulse${coin.id} 2s ease-in-out infinite; }
+                .novaAura2${coin.id} { animation: novaGlow${coin.id} 2s ease-in-out infinite 0.5s; }
+              </style>
+            </defs>
+            <!-- Cosmic pulsating auras -->
+            <circle class="novaAura2${coin.id}" cx="50" cy="40" r="40" fill="#6366f1" opacity="0.45"/>
+            <circle class="novaAura1${coin.id}" cx="50" cy="40" r="35" fill="#8b5cf6" opacity="0.7"/>
+            <!-- Main Nova Coin -->
+            <circle cx="50" cy="40" r="27" fill="url(#novaGrad${coin.id})" stroke="#4f46e5" stroke-width="3.5"/>
+            <!-- Star symbol -->
+            <polygon points="50,28 52,35 59,35 53,40 55,47 50,42 45,47 47,40 41,35 48,35" fill="#e0e7ff" stroke="#4f46e5" stroke-width="1"/>
+            <text x="50" y="62" font-size="10" font-weight="bold" fill="#4f46e5" text-anchor="middle">100 pts</text>
+            <!-- Pointer -->
+            <polygon points="50,75 42,80 58,80" fill="#4f46e5"/>
+          </svg>
+        `),
+        scaledSize: new google.maps.Size(100, 100),
+        anchor: new google.maps.Point(50, 90),
+      };
+
+      const marker = new google.maps.Marker({
+        position: { lat: coin.position.lat, lng: coin.position.lng },
+        map: map,
+        icon: iconConfig,
+        title: 'Nova Coin (100 pts)',
+        zIndex: 450,
+      });
+
+      marker.addListener('click', async () => {
+        console.log('⭐ Nova Coin clicked');
+        const success = await attemptCollectNovaCoin(coin);
+        if (success) {
+          marker.setMap(null);
+        }
+      });
+
+      markers.push(marker);
+    });
+
+    return () => {
+      markers.forEach(marker => marker.setMap(null));
+    };
+  }, [map, novaCoins, attemptCollectNovaCoin]);
+
+  // Render Gift Cards as map markers
+  useEffect(() => {
+    if (!map || !giftCards.length) return;
+
+    console.log('🎁 Rendering', giftCards.length, 'Gift Card locations');
+
+    const markers: google.maps.Marker[] = [];
+
+    giftCards.forEach((giftCard) => {
+      const iconConfig = {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="80" height="90" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="giftGrad${giftCard.id}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#ec4899;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#f43f5e;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <!-- Gift box -->
+            <rect x="20" y="35" width="40" height="35" fill="url(#giftGrad${giftCard.id})" stroke="#be123c" stroke-width="2"/>
+            <!-- Ribbon vertical -->
+            <rect x="36" y="35" width="8" height="35" fill="#fecdd3"/>
+            <!-- Ribbon horizontal -->
+            <rect x="20" y="48" width="40" height="8" fill="#fecdd3"/>
+            <!-- Bow -->
+            <circle cx="33" cy="30" r="5" fill="#fecdd3"/>
+            <circle cx="47" cy="30" r="5" fill="#fecdd3"/>
+            <circle cx="40" cy="28" r="4" fill="#ec4899"/>
+            <!-- Dollar sign -->
+            <text x="40" y="60" font-size="14" font-weight="bold" fill="white" text-anchor="middle">$</text>
+            <!-- Pointer -->
+            <polygon points="40,75 32,80 48,80" fill="#be123c"/>
+          </svg>
+        `),
+        scaledSize: new google.maps.Size(80, 90),
+        anchor: new google.maps.Point(40, 90),
+      };
+
+      const marker = new google.maps.Marker({
+        position: { lat: giftCard.position.lat, lng: giftCard.position.lng },
+        map: map,
+        icon: iconConfig,
+        title: giftCard.title,
+        zIndex: 400,
+      });
+
+      marker.addListener('click', () => {
+        alert(`🎁 ${giftCard.title}\n\n${giftCard.description}\n\nValue: $${giftCard.value}\nMerchant: ${giftCard.merchantName}\n\nGet within ${giftCard.proximityRequired} feet to claim!`);
+      });
+
+      markers.push(marker);
+    });
+
+    return () => {
+      markers.forEach(marker => marker.setMap(null));
+    };
+  }, [map, giftCards]);
+
+  // Render AR Experiences as map markers
+  useEffect(() => {
+    if (!map || !arExperiences.length) return;
+
+    console.log('📱 Rendering', arExperiences.length, 'AR Experience locations');
+
+    const markers: google.maps.Marker[] = [];
+
+    arExperiences.forEach((arExp) => {
+      const iconConfig = {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="80" height="90" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="arGrad${arExp.id}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#0891b2;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <!-- Camera body -->
+            <rect x="15" y="35" width="50" height="35" rx="5" fill="url(#arGrad${arExp.id})" stroke="#0e7490" stroke-width="2"/>
+            <!-- Lens -->
+            <circle cx="35" cy="52" r="12" fill="#67e8f9" stroke="#0e7490" stroke-width="2"/>
+            <circle cx="35" cy="52" r="8" fill="#22d3ee" stroke="#0e7490" stroke-width="1"/>
+            <!-- AR sparkles -->
+            <circle cx="55" cy="42" r="3" fill="#fbbf24"/>
+            <circle cx="58" cy="50" r="2" fill="#fbbf24"/>
+            <circle cx="56" cy="58" r="2.5" fill="#fbbf24"/>
+            <!-- AR text -->
+            <text x="40" y="31" font-size="10" font-weight="bold" fill="#0e7490" text-anchor="middle">AR</text>
+            <!-- Pointer -->
+            <polygon points="40,75 32,80 48,80" fill="#0e7490"/>
+          </svg>
+        `),
+        scaledSize: new google.maps.Size(80, 90),
+        anchor: new google.maps.Point(40, 90),
+      };
+
+      const marker = new google.maps.Marker({
+        position: { lat: arExp.position.lat, lng: arExp.position.lng },
+        map: map,
+        icon: iconConfig,
+        title: arExp.title,
+        zIndex: 380,
+      });
+
+      marker.addListener('click', () => {
+        alert(`📱 ${arExp.title}\n\n${arExp.description}\n\nGet within ${arExp.proximityRequired} feet to activate!`);
+      });
+
+      markers.push(marker);
+    });
+
+    return () => {
+      markers.forEach(marker => marker.setMap(null));
+    };
+  }, [map, arExperiences]);
+
+  // Render Terminus DAO Stops as map markers
+  useEffect(() => {
+    if (!map || !terminusStops.length) return;
+
+    console.log('🚉 Rendering', terminusStops.length, 'Terminus DAO stops');
+
+    const markers: google.maps.Marker[] = [];
+
+    terminusStops.forEach((stop) => {
+      const iconConfig = {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="80" height="90" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="terminusGrad${stop.id}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#7c3aed;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <!-- Transit stop sign -->
+            <rect x="20" y="30" width="40" height="40" rx="3" fill="url(#terminusGrad${stop.id})" stroke="#5b21b6" stroke-width="2.5"/>
+            <!-- DAO symbol -->
+            <circle cx="40" cy="45" r="10" fill="none" stroke="white" stroke-width="2.5"/>
+            <circle cx="40" cy="45" r="5" fill="white"/>
+            <line x1="35" y1="55" x2="45" y2="55" stroke="white" stroke-width="2.5"/>
+            <!-- Pointer -->
+            <polygon points="40,75 32,80 48,80" fill="#5b21b6"/>
+          </svg>
+        `),
+        scaledSize: new google.maps.Size(80, 90),
+        anchor: new google.maps.Point(40, 90),
+      };
+
+      const marker = new google.maps.Marker({
+        position: { lat: stop.position.lat, lng: stop.position.lng },
+        map: map,
+        icon: iconConfig,
+        title: stop.name,
+        zIndex: 360,
+      });
+
+      marker.addListener('click', () => {
+        alert(`🚉 ${stop.name}\n\n${stop.description}\n\nBadges: ${stop.badges?.join(', ') || 'Various'}\n\nGet within ${stop.proximityRequired} feet to participate!`);
+      });
+
+      markers.push(marker);
+    });
+
+    return () => {
+      markers.forEach(marker => marker.setMap(null));
+    };
+  }, [map, terminusStops]);
+
+  // Render Grillz locations as map markers
+  useEffect(() => {
+    if (!map || !grillz.length) return;
+
+    console.log('✨ Rendering', grillz.length, 'Grillz locations');
+
+    const markers: google.maps.Marker[] = [];
+
+    grillz.forEach((grillzLoc) => {
+      const iconConfig = {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="80" height="90" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="grillzGrad${grillzLoc.id}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <!-- Grillz/teeth background -->
+            <rect x="18" y="38" width="44" height="25" rx="12" fill="url(#grillzGrad${grillzLoc.id})" stroke="#d97706" stroke-width="2.5"/>
+            <!-- Diamond sparkles -->
+            <polygon points="30,48 32,45 34,48 32,51" fill="white"/>
+            <polygon points="40,48 42,45 44,48 42,51" fill="white"/>
+            <polygon points="50,48 52,45 54,48 52,51" fill="white"/>
+            <circle cx="28" cy="42" r="1.5" fill="white"/>
+            <circle cx="40" cy="42" r="1.5" fill="white"/>
+            <circle cx="52" cy="42" r="1.5" fill="white"/>
+            <!-- ATL text -->
+            <text x="40" y="31" font-size="9" font-weight="bold" fill="#d97706" text-anchor="middle">ATL</text>
+            <!-- Pointer -->
+            <polygon points="40,70 32,75 48,75" fill="#d97706"/>
+          </svg>
+        `),
+        scaledSize: new google.maps.Size(80, 90),
+        anchor: new google.maps.Point(40, 90),
+      };
+
+      const marker = new google.maps.Marker({
+        position: { lat: grillzLoc.position.lat, lng: grillzLoc.position.lng },
+        map: map,
+        icon: iconConfig,
+        title: grillzLoc.name,
+        zIndex: 340,
+      });
+
+      marker.addListener('click', () => {
+        alert(`✨ ${grillzLoc.name}\n\n${grillzLoc.description}\n\nGet within ${grillzLoc.proximityRequired} feet to claim!`);
+      });
+
+      markers.push(marker);
+    });
+
+    return () => {
+      markers.forEach(marker => marker.setMap(null));
+    };
+  }, [map, grillz]);
+
+  // Render LPW Chicken locations as map markers
+  useEffect(() => {
+    if (!map || !lpwChicken.length) return;
+
+    console.log('🍗 Rendering', lpwChicken.length, 'LPW Chicken locations');
+
+    const markers: google.maps.Marker[] = [];
+
+    lpwChicken.forEach((lpw) => {
+      const iconConfig = {
+        url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+          <svg width="80" height="90" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="lpwGrad${lpw.id}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" />
+                <stop offset="100%" style="stop-color:#ea580c;stop-opacity:1" />
+              </linearGradient>
+            </defs>
+            <!-- Chicken wing shape -->
+            <ellipse cx="35" cy="48" rx="18" ry="14" fill="url(#lpwGrad${lpw.id})" stroke="#c2410c" stroke-width="2"/>
+            <ellipse cx="48" cy="50" rx="12" ry="10" fill="url(#lpwGrad${lpw.id})" stroke="#c2410c" stroke-width="2"/>
+            <!-- Lemon slices -->
+            <circle cx="28" cy="42" r="5" fill="#fef08a" stroke="#ca8a04" stroke-width="1.5"/>
+            <circle cx="52" cy="46" r="4" fill="#fef08a" stroke="#ca8a04" stroke-width="1.5"/>
+            <!-- LPW text -->
+            <text x="40" y="31" font-size="9" font-weight="bold" fill="#c2410c" text-anchor="middle">LPW</text>
+            <text x="40" y="67" font-size="8" font-weight="bold" fill="#c2410c" text-anchor="middle">ATL</text>
+            <!-- Pointer -->
+            <polygon points="40,73 32,78 48,78" fill="#c2410c"/>
+          </svg>
+        `),
+        scaledSize: new google.maps.Size(80, 90),
+        anchor: new google.maps.Point(40, 90),
+      };
+
+      const marker = new google.maps.Marker({
+        position: { lat: lpw.position.lat, lng: lpw.position.lng },
+        map: map,
+        icon: iconConfig,
+        title: lpw.name,
+        zIndex: 320,
+      });
+
+      marker.addListener('click', () => {
+        alert(`🍗 ${lpw.name}\n\n${lpw.description}\n\nGet within ${lpw.proximityRequired} feet to find that Lemon Pepper Wet!`);
+      });
+
+      markers.push(marker);
+    });
+
+    return () => {
+      markers.forEach(marker => marker.setMap(null));
+    };
+  }, [map, lpwChicken]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -498,8 +947,24 @@ export function MapView() {
         }}
       />
 
-      <TopBar />
-      <BottomNav />
+      <TopBar
+        onNotificationClick={() => setActivePanel('notifications')}
+        onProfileClick={() => setActivePanel('profile')}
+      />
+
+      {/* Expandable Menu Bar */}
+      <ExpandableMenu
+        onPinClick={() => {
+          // Recenter map on user location
+          if (map && position) {
+            map.panTo({ lat: position.lat, lng: position.lng });
+          }
+        }}
+        onPhoenixClick={() => setActivePanel('offers')}
+        onLeaderboardClick={() => setActivePanel('leaderboard')}
+        onFriendsClick={() => setActivePanel('friends')}
+        onChatClick={() => setActivePanel('chat')}
+      />
 
       {/* Controls */}
       <div className="absolute top-24 right-4 z-20 flex flex-col gap-3">
@@ -565,6 +1030,42 @@ export function MapView() {
           <div>Tilt: {map?.getTilt() || 0}°</div>
           <div>Heading: {map?.getHeading() || 0}°</div>
           <div>Zoom: {map?.getZoom()?.toFixed(1) || 0}</div>
+        </div>
+      )}
+
+      {/* UI Panels */}
+      {activePanel === 'profile' && <ProfilePage onClose={() => setActivePanel('none')} />}
+      {activePanel === 'offers' && <PhoenixOffersCards onClose={() => setActivePanel('none')} />}
+      {activePanel === 'leaderboard' && <Leaderboard onClose={() => setActivePanel('none')} />}
+      {activePanel === 'notifications' && <NotificationPanel onClose={() => setActivePanel('none')} />}
+      {activePanel === 'friends' && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+          <div className="bg-gray-900 rounded-2xl p-8 max-w-md text-center">
+            <div className="text-6xl mb-4">👥</div>
+            <h2 className="text-white text-2xl font-bold mb-4">Friends</h2>
+            <p className="text-gray-400 mb-6">Friends and social features coming soon!</p>
+            <button
+              onClick={() => setActivePanel('none')}
+              className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-full font-bold transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      {activePanel === 'chat' && (
+        <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+          <div className="bg-gray-900 rounded-2xl p-8 max-w-md text-center">
+            <div className="text-6xl mb-4">💬</div>
+            <h2 className="text-white text-2xl font-bold mb-4">Chat</h2>
+            <p className="text-gray-400 mb-6">Chat features coming soon!</p>
+            <button
+              onClick={() => setActivePanel('none')}
+              className="bg-primary-600 hover:bg-primary-700 text-white px-8 py-3 rounded-full font-bold transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -53,10 +53,18 @@ export interface GameState {
   userCoins: number;
   collectedCoinIds: string[];
   homebases: Homebase[];
+  phoenixCoins: number;
+  novaCoins: number;
+  novaStreakDays: number;
+  novaCollectionHistory: Date[];
+  phoenixCollectionHistory: Date[];
   setCoins: (coins: Coin[]) => void;
   collectCoin: (coinId: string, value: number) => void;
   addCoins: (coins: Coin[]) => void;
   setHomebases: (homebases: Homebase[]) => void;
+  addPhoenixCoin: () => void;
+  addNovaCoin: () => void;
+  addPoints: (points: number) => void;
 }
 
 // Map Types

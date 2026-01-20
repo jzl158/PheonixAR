@@ -1,0 +1,25 @@
+- Player Location  
+  - Skylark Emblem  
+- Laila’s Forest  
+- Ashley’s Mural locations  
+- Home Bases  
+  - Bookstore Gallery  
+  - Candy World  
+  - Kupcakerie  
+  - The Atlanta Blockchain Center  
+- Regular Tree  
+- Ads  
+- Happy Messages  
+- Collectible Types  
+  - GSKY Token  
+  - Mint & Marquee Items  
+  - Phoenix Coins  
+  - Nova Coins  
+  - Offers  
+- AR Experience Indicator  
+- Gift Card Indicator  
+- Terminus DAO Stops  
+- Atlanta Gems Indicators  
+  - Grillz  
+  - LPW Chicken
+
