@@ -112,6 +112,7 @@ export function MapView() {
       if (window.google && window.google.maps && customElements.get('gmp-map-3d')) {
         console.log('✅ Google Maps 3D API ready!');
         console.log('✅ gmp-map-3d custom element registered');
+        console.log('✅ Available: window.google.maps.Map3DElement:', window.google.maps.Map3DElement);
         setMapsLoaded(true);
         clearInterval(checkMapsLoaded);
       }
@@ -137,104 +138,48 @@ export function MapView() {
   useEffect(() => {
     if (!mapRef.current || !position || !mapsLoaded) return;
 
-    // Prevent double initialization
-    if (map) return;
-
     console.log('🗺️ Initializing Google 3D Map...');
     console.log('📍 Position:', position);
 
     const map3d = mapRef.current as any;
 
-    // Wait for the element to be fully ready
-    const initMap = () => {
-      try {
-        console.log('🔧 Setting 3D map attributes...');
-        console.log('Element:', map3d);
-        console.log('Position:', position);
+    try {
+      console.log('🔧 Setting 3D map attributes...');
 
-        // Set 3D map attributes - center must be an object when set via JS
-        map3d.center = { lat: position.lat, lng: position.lng, altitude: 0 };
-        map3d.range = 2000;
-        map3d.tilt = 75;
-        map3d.heading = 0;
-        map3d.defaultLabelsDisabled = false;
+      // Set 3D map attributes - center must be an object when set via JS
+      map3d.center = { lat: position.lat, lng: position.lng, altitude: 0 };
+      map3d.range = 2000;
+      map3d.tilt = 75;
+      map3d.heading = 0;
+      map3d.defaultLabelsDisabled = false;
 
-        console.log('✅ 3D Map attributes set');
-        console.log('Center:', map3d.center);
-        console.log('Range:', map3d.range);
-        console.log('Tilt:', map3d.tilt);
+      console.log('✅ 3D Map attributes set');
+      console.log('Center:', map3d.center);
+      console.log('Range:', map3d.range);
+      console.log('Tilt:', map3d.tilt);
 
-        // Listen for map load event to get innerMap for markers
-        const handleLoad = () => {
-          console.log('🎉 gmp-load event fired!');
-          console.log('map3d element:', map3d);
-          console.log('map3d.innerMap:', map3d.innerMap);
+      // For gmp-map-3d, we'll use it for visualization only
+      // Markers will need to be added as gmp-marker-3d children or via AdvancedMarkerElement
+      // Set a placeholder map state so the rest of the app knows the map is ready
+      setMap(map3d as any);
 
-          if (map3d.innerMap) {
-            console.log('✅ InnerMap available, setting map state');
-            setMap(map3d.innerMap);
-          } else {
-            console.warn('⚠️ InnerMap not available yet, will retry...');
-            setTimeout(() => {
-              console.log('🔄 Retry - checking innerMap:', map3d.innerMap);
-              if (map3d.innerMap) {
-                console.log('✅ InnerMap available on retry');
-                setMap(map3d.innerMap);
-              } else {
-                console.error('❌ InnerMap still not available');
-              }
-            }, 1000);
-          }
-        };
+      console.log('✅ 3D Map initialized for visualization');
 
-        map3d.addEventListener('gmp-load', handleLoad);
-        console.log('👂 Added gmp-load event listener');
-
-        // Check if already loaded
-        if (map3d.innerMap) {
-          console.log('✅ InnerMap already available immediately');
-          setMap(map3d.innerMap);
-        }
-
-        // Fallback: Try to get innerMap after delays
-        setTimeout(() => {
-          if (!map) {
-            console.log('⏰ 2s fallback - checking innerMap:', map3d.innerMap);
-            if (map3d.innerMap) {
-              console.log('✅ InnerMap available via 2s fallback');
-              setMap(map3d.innerMap);
-            }
-          }
-        }, 2000);
-
-        setTimeout(() => {
-          if (!map) {
-            console.log('⏰ 5s fallback - checking innerMap:', map3d.innerMap);
-            if (map3d.innerMap) {
-              console.log('✅ InnerMap available via 5s fallback');
-              setMap(map3d.innerMap);
-            } else {
-              console.error('❌ InnerMap not available after 5 seconds');
-              console.error('map3d properties:', Object.keys(map3d));
-            }
-          }
-        }, 5000);
-      } catch (error) {
-        console.error('❌ Error initializing 3D map:', error);
-      }
-    };
-
-    // Give the element time to be ready
-    if (map3d.tagName === 'GMP-MAP-3D') {
-      initMap();
-    } else {
-      setTimeout(initMap, 500);
+    } catch (error) {
+      console.error('❌ Error initializing 3D map:', error);
     }
-  }, [mapsLoaded, position, map]);
+  }, [mapsLoaded, position]);
 
   // Add user location marker
+  // TODO: Markers need to be implemented differently for gmp-map-3d
   useEffect(() => {
     if (!map || !position) return;
+
+    // Skip marker rendering for gmp-map-3d (for now)
+    if (map.tagName === 'GMP-MAP-3D') {
+      console.log('⏭️ Skipping marker rendering for gmp-map-3d (not yet implemented)');
+      return;
+    }
 
     console.log('📍 Adding user location marker at:', position);
 
@@ -265,6 +210,9 @@ export function MapView() {
   // Render coins as Google Maps markers
   useEffect(() => {
     if (!map || !coins.length) return;
+
+    // Skip for gmp-map-3d (for now)
+    if (map.tagName === 'GMP-MAP-3D') return;
 
     console.log('🪙 Rendering', coins.length, 'coins as map markers');
 
@@ -466,6 +414,7 @@ export function MapView() {
   // Render homebases as map markers
   useEffect(() => {
     if (!map || !homebases.length) return;
+    if (map.tagName === 'GMP-MAP-3D') return;
 
     console.log('🏠 Rendering', homebases.length, 'homebase markers');
 
@@ -524,6 +473,7 @@ export function MapView() {
   // Render Phoenix Coins (RARE) as map markers
   useEffect(() => {
     if (!map || !phoenixCoins.length) return;
+    if (map.tagName === 'GMP-MAP-3D') return;
 
     console.log('🔥 Rendering', phoenixCoins.length, 'Phoenix Coins (rare)');
 
@@ -596,6 +546,7 @@ export function MapView() {
   // Render Nova Coins (SEMI-RARE) as map markers
   useEffect(() => {
     if (!map || !novaCoins.length) return;
+    if (map.tagName === 'GMP-MAP-3D') return;
 
     console.log('⭐ Rendering', novaCoins.length, 'Nova Coins (semi-rare)');
 
@@ -668,6 +619,7 @@ export function MapView() {
   // Render Gift Cards as map markers
   useEffect(() => {
     if (!map || !giftCards.length) return;
+    if (map.tagName === 'GMP-MAP-3D') return;
 
     console.log('🎁 Rendering', giftCards.length, 'Gift Card locations');
 
@@ -726,6 +678,7 @@ export function MapView() {
   // Render AR Experiences as map markers
   useEffect(() => {
     if (!map || !arExperiences.length) return;
+    if (map.tagName === 'GMP-MAP-3D') return;
 
     console.log('📱 Rendering', arExperiences.length, 'AR Experience locations');
 
@@ -783,6 +736,7 @@ export function MapView() {
   // Render Terminus DAO Stops as map markers
   useEffect(() => {
     if (!map || !terminusStops.length) return;
+    if (map.tagName === 'GMP-MAP-3D') return;
 
     console.log('🚉 Rendering', terminusStops.length, 'Terminus DAO stops');
 
@@ -835,6 +789,7 @@ export function MapView() {
   // Render Grillz locations as map markers
   useEffect(() => {
     if (!map || !grillz.length) return;
+    if (map.tagName === 'GMP-MAP-3D') return;
 
     console.log('✨ Rendering', grillz.length, 'Grillz locations');
 
@@ -892,6 +847,7 @@ export function MapView() {
   // Render LPW Chicken locations as map markers
   useEffect(() => {
     if (!map || !lpwChicken.length) return;
+    if (map.tagName === 'GMP-MAP-3D') return;
 
     console.log('🍗 Rendering', lpwChicken.length, 'LPW Chicken locations');
 
