@@ -40,13 +40,14 @@ export function Leaderboard({ onClose }: LeaderboardProps) {
   };
 
   // Preserved for future use
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // @ts-ignore - Intentionally preserved for future functionality
   const getRankEmoji = (rank: number) => {
     if (rank === 1) return '🥇';
     if (rank === 2) return '🥈';
     if (rank === 3) return '🥉';
     return `#${rank}`;
   };
+  void getRankEmoji; // Suppress unused variable warning
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4">
