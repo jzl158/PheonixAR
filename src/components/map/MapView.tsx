@@ -972,13 +972,9 @@ export function MapView() {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden" style={{ background: '#1a1a1a' }}>
-      {/* Google 3D Maps Container */}
+      {/* Google 3D Maps Container - center is set programmatically */}
       <gmp-map-3d
         ref={mapRef}
-        center={position ? `${position.lat}, ${position.lng}` : '33.8541508, -84.381267'}
-        range="2000"
-        tilt="75"
-        heading="0"
         style={{
           width: '100%',
           height: '100%',
