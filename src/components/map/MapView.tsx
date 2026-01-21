@@ -35,7 +35,7 @@ export function MapView() {
   const { homebases, setHomebases } = useGameStore();
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [map, setMap] = useState<google.maps.Map | any>(null);
   const [arLoaded, setArLoaded] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
 
@@ -132,7 +132,6 @@ export function MapView() {
       } else if (!customElements.get('gmp-map-3d')) {
         console.error('⏱️ Timeout: gmp-map-3d custom element not registered');
         console.error('Check that libraries=maps3d is in the script URL');
-        console.error('Available custom elements:', Array.from(customElements.keys ? customElements.keys() : []));
       }
     }, 15000);
 
