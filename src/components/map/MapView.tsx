@@ -312,59 +312,31 @@ export function MapView() {
 
       const marker3ds: any[] = [];
 
-      const loadMarkers = async () => {
-        const { Marker3DElement } = await window.google.maps.importLibrary('maps3d') as any;
+      coins.forEach((coin) => {
+        // For 3D maps, use simple label markers (images don't position correctly)
+        const marker3d = document.createElement('gmp-marker-3d') as any;
+        marker3d.setAttribute('position', `${coin.position.lat},${coin.position.lng}`);
+        marker3d.setAttribute('altitude-mode', 'clamp-to-ground');
 
-        coins.forEach((coin) => {
-          // Special handling for 1 coins - use custom image with programmatic API
-          if (coin.value === 1) {
-            const marker3d = new Marker3DElement({
-              position: { lat: coin.position.lat, lng: coin.position.lng },
-            });
+        // Use coin emoji for value 1, label for others
+        if (coin.value === 1) {
+          marker3d.setAttribute('label', '🪙');
+        } else {
+          marker3d.setAttribute('label', `🪙 ${coin.value}`);
+        }
 
-            const coinImg = document.createElement('img');
-            coinImg.src = '/1coin.png';
-            coinImg.style.width = '20px';
-            coinImg.style.height = '20px';
-
-            const templateForImg = document.createElement('template');
-            templateForImg.content.append(coinImg);
-            marker3d.append(templateForImg);
-
-            // Add click listener
-            marker3d.addEventListener('gmp-click', async () => {
-              console.log('💰 Coin clicked:', coin.value);
-              const success = await attemptCollectCoin(coin);
-              if (success && marker3d.parentNode) {
-                marker3d.parentNode.removeChild(marker3d);
-              }
-            });
-
-            map.append(marker3d);
-            marker3ds.push(marker3d);
-          } else {
-            // Use web component for other coin values
-            const marker3d = document.createElement('gmp-marker-3d') as any;
-            marker3d.setAttribute('position', `${coin.position.lat},${coin.position.lng}`);
-            marker3d.setAttribute('altitude-mode', 'clamp-to-ground');
-            marker3d.setAttribute('label', `🪙 ${coin.value}`);
-
-            // Add click listener
-            marker3d.addEventListener('click', async () => {
-              console.log('💰 Coin clicked:', coin.value);
-              const success = await attemptCollectCoin(coin);
-              if (success && marker3d.parentNode) {
-                marker3d.parentNode.removeChild(marker3d);
-              }
-            });
-
-            map.appendChild(marker3d);
-            marker3ds.push(marker3d);
+        // Add click listener
+        marker3d.addEventListener('click', async () => {
+          console.log('💰 Coin clicked:', coin.value);
+          const success = await attemptCollectCoin(coin);
+          if (success && marker3d.parentNode) {
+            marker3d.parentNode.removeChild(marker3d);
           }
         });
-      };
 
-      loadMarkers();
+        map.appendChild(marker3d);
+        marker3ds.push(marker3d);
+      });
 
       console.log('✅', marker3ds.length, '3D coin markers added');
 
