@@ -319,7 +319,7 @@ export function MapView() {
           if (coin.value === 1) {
             // Use custom image for value 1 coins
             const coinImg = document.createElement('img');
-            coinImg.src = '/1coin.png';
+            coinImg.src = '/1coinv2.png';
 
             const marker3d = new Marker3DElement({
               position: { lat: coin.position.lat, lng: coin.position.lng },
