@@ -317,36 +317,63 @@ export function MapView() {
 
         coins.forEach((coin) => {
           if (coin.value === 1) {
-            // Use custom image for value 1 coins
-            const coinImg = document.createElement('img');
-            coinImg.src = '/1coinv2.png';
+            // Randomly show either image or label "1" for value 1 coins
+            const useImage = Math.random() > 0.5;
 
-            const marker3d = new Marker3DElement({
-              position: { lat: coin.position.lat, lng: coin.position.lng },
-              altitudeMode: 'CLAMP_TO_GROUND',
-            });
+            if (useImage) {
+              // Use custom image for value 1 coins
+              const coinImg = document.createElement('img');
+              coinImg.src = '/1coinv2.png';
 
-            const templateForImg = document.createElement('template');
-            templateForImg.content.append(coinImg);
-            marker3d.append(templateForImg);
+              const marker3d = new Marker3DElement({
+                position: { lat: coin.position.lat, lng: coin.position.lng },
+                altitudeMode: 'CLAMP_TO_GROUND',
+                extruded: true, // Keeps marker visible at all zoom levels
+              });
 
-            // Add click listener
-            marker3d.addEventListener('gmp-click', async () => {
-              console.log('💰 Coin clicked:', coin.value);
-              const success = await attemptCollectCoin(coin);
-              if (success && marker3d.parentNode) {
-                marker3d.parentNode.removeChild(marker3d);
-              }
-            });
+              const templateForImg = document.createElement('template');
+              templateForImg.content.append(coinImg);
+              marker3d.append(templateForImg);
 
-            map.append(marker3d);
-            marker3ds.push(marker3d);
+              // Add click listener
+              marker3d.addEventListener('gmp-click', async () => {
+                console.log('💰 Coin clicked:', coin.value);
+                const success = await attemptCollectCoin(coin);
+                if (success && marker3d.parentNode) {
+                  marker3d.parentNode.removeChild(marker3d);
+                }
+              });
+
+              map.append(marker3d);
+              marker3ds.push(marker3d);
+            } else {
+              // Use label "1"
+              const marker3d = new Marker3DElement({
+                position: { lat: coin.position.lat, lng: coin.position.lng },
+                altitudeMode: 'CLAMP_TO_GROUND',
+                label: '1',
+                extruded: true, // Keeps marker visible at all zoom levels
+              });
+
+              // Add click listener
+              marker3d.addEventListener('gmp-click', async () => {
+                console.log('💰 Coin clicked:', coin.value);
+                const success = await attemptCollectCoin(coin);
+                if (success && marker3d.parentNode) {
+                  marker3d.parentNode.removeChild(marker3d);
+                }
+              });
+
+              map.append(marker3d);
+              marker3ds.push(marker3d);
+            }
           } else {
-            // Use label for other coin values
+            // Use label for other coin values (just the number)
             const marker3d = new Marker3DElement({
               position: { lat: coin.position.lat, lng: coin.position.lng },
               altitudeMode: 'CLAMP_TO_GROUND',
-              label: `🪙 ${coin.value}`,
+              label: coin.value.toString(),
+              extruded: true, // Keeps marker visible at all zoom levels
             });
 
             // Add click listener
