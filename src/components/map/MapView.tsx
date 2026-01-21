@@ -322,8 +322,8 @@ export function MapView() {
         if (coin.value === 1) {
           const coinImg = document.createElement('img');
           coinImg.src = '/1coin.png';
-          coinImg.style.width = '60px';
-          coinImg.style.height = '60px';
+          coinImg.style.width = '30px';
+          coinImg.style.height = '30px';
 
           const templateForImg = document.createElement('template');
           templateForImg.content.append(coinImg);
