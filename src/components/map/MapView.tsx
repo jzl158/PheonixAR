@@ -249,8 +249,9 @@ export function MapView() {
     }
   }, [mapsLoaded, position, mapInitialized, accuracy]);
 
-  // Track user location marker ref
+  // Track user location marker refs
   const userMarkerRef = useRef<any>(null);
+  const accuracyCircleRef = useRef<any>(null);
 
   // Create user location marker once
   useEffect(() => {
@@ -260,22 +261,39 @@ export function MapView() {
     if (map.tagName === 'GMP-MAP-3D') {
       console.log('📍 Creating 3D user location marker...');
 
-      // Create 3D marker element with label attribute
-      const marker3d = document.createElement('gmp-marker-3d') as any;
-      marker3d.setAttribute('altitude-mode', 'clamp-to-ground');
-      marker3d.setAttribute('label', '📍 You');
-      marker3d.setAttribute('extruded', 'true');
+      const createLocationMarker = async () => {
+        const { Marker3DElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-      // Append to map
-      map.appendChild(marker3d);
-      userMarkerRef.current = marker3d;
+        // Create blue dot marker for user location
+        const locationImg = document.createElement('div');
+        locationImg.style.width = '20px';
+        locationImg.style.height = '20px';
+        locationImg.style.borderRadius = '50%';
+        locationImg.style.backgroundColor = '#4285F4';
+        locationImg.style.border = '3px solid white';
+        locationImg.style.boxShadow = '0 0 6px rgba(0,0,0,0.3)';
 
-      console.log('✅ 3D user location marker created');
+        const marker3d = new Marker3DElement({
+          altitudeMode: 'CLAMP_TO_GROUND',
+          extruded: true,
+        });
+
+        const template = document.createElement('template');
+        template.content.append(locationImg);
+        marker3d.append(template);
+
+        map.append(marker3d);
+        userMarkerRef.current = marker3d;
+
+        console.log('✅ 3D user location marker created');
+      };
+
+      createLocationMarker();
 
       // Cleanup
       return () => {
-        if (marker3d.parentNode) {
-          marker3d.parentNode.removeChild(marker3d);
+        if (userMarkerRef.current && userMarkerRef.current.parentNode) {
+          userMarkerRef.current.parentNode.removeChild(userMarkerRef.current);
         }
         userMarkerRef.current = null;
       };
@@ -283,29 +301,43 @@ export function MapView() {
 
     console.log('📍 Creating user location marker');
 
-    // Create user location marker
+    // Create blue dot for user location (2D map)
     const userMarker = new google.maps.Marker({
       map: map,
       icon: {
         path: google.maps.SymbolPath.CIRCLE,
         scale: 8,
-        fillColor: '#3B82F6',
+        fillColor: '#4285F4',
         fillOpacity: 1,
         strokeColor: '#FFFFFF',
-        strokeWeight: 3,
+        strokeWeight: 2,
       },
       title: 'Your Location',
       zIndex: 1000,
     });
 
+    // Create accuracy circle
+    const accuracyCircle = new google.maps.Circle({
+      map: map,
+      strokeColor: '#4285F4',
+      strokeOpacity: 0.2,
+      strokeWeight: 1,
+      fillColor: '#4285F4',
+      fillOpacity: 0.1,
+      zIndex: 999,
+    });
+
     userMarkerRef.current = userMarker;
+    accuracyCircleRef.current = accuracyCircle;
 
     console.log('✅ User location marker created');
 
     // Cleanup
     return () => {
       userMarker.setMap(null);
+      accuracyCircle.setMap(null);
       userMarkerRef.current = null;
+      accuracyCircleRef.current = null;
     };
   }, [map]);
 
@@ -317,12 +349,18 @@ export function MapView() {
 
     if (map.tagName === 'GMP-MAP-3D') {
       // Update 3D marker position
-      userMarkerRef.current.setAttribute('position', `${position.lat},${position.lng}`);
+      userMarkerRef.current.position = { lat: position.lat, lng: position.lng };
     } else {
       // Update 2D marker position
       userMarkerRef.current.setPosition({ lat: position.lat, lng: position.lng });
+
+      // Update accuracy circle
+      if (accuracyCircleRef.current && accuracy) {
+        accuracyCircleRef.current.setCenter({ lat: position.lat, lng: position.lng });
+        accuracyCircleRef.current.setRadius(accuracy);
+      }
     }
-  }, [position, map]);
+  }, [position, accuracy, map]);
 
   // Render coins as Google Maps markers
   useEffect(() => {
