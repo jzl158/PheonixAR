@@ -249,38 +249,42 @@ export function MapView() {
     }
   }, [mapsLoaded, position, mapInitialized, accuracy]);
 
-  // Add user location marker
+  // Track user location marker ref
+  const userMarkerRef = useRef<any>(null);
+
+  // Create user location marker once
   useEffect(() => {
-    if (!map || !position) return;
+    if (!map) return;
 
     // Handle 3D map markers differently
     if (map.tagName === 'GMP-MAP-3D') {
-      console.log('📍 Adding 3D user location marker...');
+      console.log('📍 Creating 3D user location marker...');
 
       // Create 3D marker element with label attribute
       const marker3d = document.createElement('gmp-marker-3d') as any;
-      marker3d.setAttribute('position', `${position.lat},${position.lng}`);
-      marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+      marker3d.setAttribute('altitude-mode', 'clamp-to-ground');
       marker3d.setAttribute('label', '📍 You');
+      marker3d.setAttribute('extruded', 'true');
 
       // Append to map
       map.appendChild(marker3d);
+      userMarkerRef.current = marker3d;
 
-      console.log('✅ 3D user location marker added');
+      console.log('✅ 3D user location marker created');
 
       // Cleanup
       return () => {
         if (marker3d.parentNode) {
           marker3d.parentNode.removeChild(marker3d);
         }
+        userMarkerRef.current = null;
       };
     }
 
-    console.log('📍 Adding user location marker at:', position);
+    console.log('📍 Creating user location marker');
 
     // Create user location marker
     const userMarker = new google.maps.Marker({
-      position: { lat: position.lat, lng: position.lng },
       map: map,
       icon: {
         path: google.maps.SymbolPath.CIRCLE,
@@ -294,13 +298,31 @@ export function MapView() {
       zIndex: 1000,
     });
 
-    console.log('✅ User location marker added');
+    userMarkerRef.current = userMarker;
+
+    console.log('✅ User location marker created');
 
     // Cleanup
     return () => {
       userMarker.setMap(null);
+      userMarkerRef.current = null;
     };
-  }, [map, position]);
+  }, [map]);
+
+  // Update user location marker position when position changes
+  useEffect(() => {
+    if (!userMarkerRef.current || !position) return;
+
+    console.log('📍 Updating user location to:', position);
+
+    if (map.tagName === 'GMP-MAP-3D') {
+      // Update 3D marker position
+      userMarkerRef.current.setAttribute('position', `${position.lat},${position.lng}`);
+    } else {
+      // Update 2D marker position
+      userMarkerRef.current.setPosition({ lat: position.lat, lng: position.lng });
+    }
+  }, [position, map]);
 
   // Render coins as Google Maps markers
   useEffect(() => {
