@@ -7,6 +7,7 @@ export function useGeolocation() {
     error: null,
     isLoading: true,
   });
+  const [accuracy, setAccuracy] = useState<number | null>(null);
 
   useEffect(() => {
     if (!navigator.geolocation) {
@@ -23,10 +24,13 @@ export function useGeolocation() {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
+      const accuracyMeters = position.coords.accuracy;
+      setAccuracy(accuracyMeters);
+
       console.log('📍 GPS Update:', {
         lat: coords.lat,
         lng: coords.lng,
-        accuracy: position.coords.accuracy + 'm',
+        accuracy: accuracyMeters + 'm',
         altitude: position.coords.altitude,
       });
       setState({
@@ -63,5 +67,5 @@ export function useGeolocation() {
     };
   }, []);
 
-  return state;
+  return { ...state, accuracy };
 }

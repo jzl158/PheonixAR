@@ -29,7 +29,7 @@ declare global {
 }
 
 export function MapView() {
-  const { position, isLoading, error } = useGeolocation();
+  const { position, isLoading, error, accuracy } = useGeolocation();
   const { coins, attemptCollectCoin } = useCoins(position);
   const { phoenixCoins, novaCoins, attemptCollectPhoenixCoin, attemptCollectNovaCoin } = useSpecialCoins(position);
   const { homebases, setHomebases } = useGameStore();
@@ -143,13 +143,14 @@ export function MapView() {
 
   // Track if map has been initialized
   const [mapInitialized, setMapInitialized] = useState(false);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
 
   // Initialize 3D map when API loads and position is available (ONCE)
   useEffect(() => {
     if (!mapRef.current || !position || !mapsLoaded || mapInitialized) return;
 
     console.log('═══════════════════════════════════════');
-    console.log('🚀 MapView v5.0 - Single Init, Free Navigation');
+    console.log('🚀 MapView v6.0 - Improved GPS Accuracy');
     console.log('═══════════════════════════════════════');
 
     const map3d = mapRef.current as any;
@@ -157,6 +158,10 @@ export function MapView() {
     try {
       console.log('📍 Initializing with setAttribute (string format)...');
       console.log('Position:', position);
+      console.log('GPS Accuracy:', accuracy ? `${accuracy}m` : 'unknown');
+
+      // Store GPS accuracy
+      setGpsAccuracy(accuracy);
 
       // CRITICAL: Use setAttribute() with STRING values to trigger proper initialization
       // The web component expects attributes as strings initially
@@ -164,7 +169,8 @@ export function MapView() {
       map3d.setAttribute('mode', 'hybrid');
       // Use lat,lng without altitude for more accurate positioning
       map3d.setAttribute('center', `${position.lat},${position.lng}`);
-      map3d.setAttribute('range', '1500');
+      // Reduced range from 1500m to 800m for much closer, more precise view
+      map3d.setAttribute('range', '800');
       map3d.setAttribute('tilt', '67.5');
       map3d.setAttribute('heading', '0');
 
@@ -176,7 +182,7 @@ export function MapView() {
 
       console.log('✅ Attributes set (string format with mode=hybrid)');
 
-      // Wait a moment for the element to initialize, then check
+      // Wait for the element to initialize, then check (increased to 2000ms for reliability)
       setTimeout(() => {
         console.log('🔍 Element diagnostics (after setAttribute):');
         console.log('- Element dimensions:', map3d.offsetWidth, 'x', map3d.offsetHeight);
@@ -191,7 +197,7 @@ export function MapView() {
         } else {
           console.error('❌ Shadow root NOT created. Element may not have initialized.');
         }
-      }, 500);
+      }, 2000);
 
       // Set map state so UI knows map is ready
       setMap(map3d as any);
@@ -202,7 +208,7 @@ export function MapView() {
     } catch (error) {
       console.error('❌ Error initializing 3D map:', error);
     }
-  }, [mapsLoaded, position, mapInitialized]);
+  }, [mapsLoaded, position, mapInitialized, accuracy]);
 
   // Add user location marker
   useEffect(() => {
@@ -1396,12 +1402,12 @@ export function MapView() {
                 if (currentTilt > 45) {
                   // Low tilt (more top-down)
                   map3d.setAttribute('tilt', '15');
-                  map3d.setAttribute('range', '1000');
+                  map3d.setAttribute('range', '600');
                   console.log('🗺️ Switched to top-down view');
                 } else {
                   // High tilt (more perspective)
                   map3d.setAttribute('tilt', '67.5');
-                  map3d.setAttribute('range', '2000');
+                  map3d.setAttribute('range', '800');
                   console.log('🏙️ Switched to 3D perspective view');
                 }
               }
@@ -1427,12 +1433,13 @@ export function MapView() {
           <div className="font-bold mb-1">Debug Info (3D Map):</div>
           <div>Lat: {position.lat.toFixed(6)}</div>
           <div>Lng: {position.lng.toFixed(6)}</div>
+          <div>GPS Accuracy: {gpsAccuracy ? `${gpsAccuracy.toFixed(1)}m` : 'unknown'}</div>
           <div>Coins: {coins.length}</div>
           <div>Maps 3D: {mapsLoaded ? '✓' : '✗'}</div>
           <div>Mode: {(mapRef.current as any)?.getAttribute('mode') || 'none'}</div>
           <div>Tilt: {(mapRef.current as any)?.getAttribute('tilt') || '67.5'}°</div>
           <div>Heading: {(mapRef.current as any)?.getAttribute('heading') || '0'}°</div>
-          <div>Range: {(mapRef.current as any)?.getAttribute('range') || '2000'}m</div>
+          <div>Range: {(mapRef.current as any)?.getAttribute('range') || '800'}m</div>
           <div>Center: {(mapRef.current as any)?.getAttribute('center') || 'loading'}</div>
           <div>Shadow: {(mapRef.current as any)?.shadowRoot ? '✓' : '✗'}</div>
         </div>
