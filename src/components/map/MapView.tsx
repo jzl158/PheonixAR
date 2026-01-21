@@ -200,6 +200,45 @@ export function MapView() {
         }
       }, 2000);
 
+      // Add custom 3D model at user location using local GLB file
+      const add3DModel = async () => {
+        try {
+          console.log('🎨 Adding custom 3D model from local file...');
+          console.log('🎨 User position:', position);
+
+          // Wait for map to fully initialize
+          await new Promise(resolve => setTimeout(resolve, 3000));
+
+          // Import Model3DInteractiveElement
+          const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
+
+          // Create 3D model at user's location using local GLB file
+          const model = new Model3DInteractiveElement({
+            src: '/windmill.glb', // Local file from public folder
+            position: { lat: position.lat, lng: position.lng, altitude: 0 },
+            orientation: { heading: 0, tilt: 270, roll: 90 },
+            scale: 0.15,
+            altitudeMode: 'CLAMP_TO_GROUND',
+          });
+
+          // Add click listener to randomly scale the model
+          model.addEventListener('gmp-click', (event: any) => {
+            const clickedModel = event.target;
+            clickedModel.scale = Math.random() * (0.5 - 0.1) + 0.1;
+            console.log('🎨 3D Model clicked! New scale:', clickedModel.scale);
+          });
+
+          // Append model to map
+          map3d.append(model);
+
+          console.log('✅ Custom 3D model added at user location');
+        } catch (error) {
+          console.error('❌ Error adding 3D model:', error);
+        }
+      };
+
+      add3DModel();
+
       // Set map state so UI knows map is ready
       setMap(map3d as any);
       setMapInitialized(true); // Mark as initialized so we don't reset center on position updates
