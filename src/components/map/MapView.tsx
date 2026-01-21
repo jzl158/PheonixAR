@@ -169,10 +169,10 @@ export function MapView() {
       map3d.setAttribute('mode', 'hybrid');
       // Use lat,lng without altitude for more accurate positioning
       map3d.setAttribute('center', `${position.lat},${position.lng}`);
-      // Range of 1600m provides wider view with good context
-      map3d.setAttribute('range', '1600');
-      // Higher tilt (75°) positions user lower on screen, showing more area ahead
-      map3d.setAttribute('tilt', '75');
+      // Range of 2000m provides wide overview with excellent context
+      map3d.setAttribute('range', '2000');
+      // Higher tilt (80°) positions user in lower third, showing maximum area ahead
+      map3d.setAttribute('tilt', '80');
       map3d.setAttribute('heading', '0');
 
       // Enable gesture controls for touch interaction
@@ -1336,7 +1336,7 @@ export function MapView() {
                   onClick={() => {
                     if (mapRef.current) {
                       const map3d = mapRef.current as any;
-                      const currentTilt = parseFloat(map3d.getAttribute('tilt') || '75');
+                      const currentTilt = parseFloat(map3d.getAttribute('tilt') || '80');
                       map3d.setAttribute('tilt', Math.min(90, currentTilt + 10).toString());
                     }
                   }}
@@ -1349,7 +1349,7 @@ export function MapView() {
                   onClick={() => {
                     if (mapRef.current) {
                       const map3d = mapRef.current as any;
-                      const currentTilt = parseFloat(map3d.getAttribute('tilt') || '75');
+                      const currentTilt = parseFloat(map3d.getAttribute('tilt') || '80');
                       map3d.setAttribute('tilt', Math.max(0, currentTilt - 10).toString());
                     }
                   }}
@@ -1399,16 +1399,16 @@ export function MapView() {
             onClick={() => {
               if (mapRef.current) {
                 const map3d = mapRef.current as any;
-                const currentTilt = parseFloat(map3d.getAttribute('tilt') || '75');
+                const currentTilt = parseFloat(map3d.getAttribute('tilt') || '80');
                 if (currentTilt > 45) {
                   // Low tilt (more top-down)
                   map3d.setAttribute('tilt', '15');
-                  map3d.setAttribute('range', '1000');
+                  map3d.setAttribute('range', '1200');
                   console.log('🗺️ Switched to top-down view');
                 } else {
                   // High tilt (more perspective)
-                  map3d.setAttribute('tilt', '75');
-                  map3d.setAttribute('range', '1600');
+                  map3d.setAttribute('tilt', '80');
+                  map3d.setAttribute('range', '2000');
                   console.log('🏙️ Switched to 3D perspective view');
                 }
               }
@@ -1416,7 +1416,7 @@ export function MapView() {
             className="bg-black/70 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-black/80 transition-all active:scale-95"
           >
             {(() => {
-              const currentTilt = parseFloat((mapRef.current as any)?.getAttribute('tilt') || '75');
+              const currentTilt = parseFloat((mapRef.current as any)?.getAttribute('tilt') || '80');
               return currentTilt > 45 ? '🗺️ Top View' : '🏙️ 3D View';
             })()}
           </button>
@@ -1438,9 +1438,9 @@ export function MapView() {
           <div>Coins: {coins.length}</div>
           <div>Maps 3D: {mapsLoaded ? '✓' : '✗'}</div>
           <div>Mode: {(mapRef.current as any)?.getAttribute('mode') || 'none'}</div>
-          <div>Tilt: {(mapRef.current as any)?.getAttribute('tilt') || '75'}°</div>
+          <div>Tilt: {(mapRef.current as any)?.getAttribute('tilt') || '80'}°</div>
           <div>Heading: {(mapRef.current as any)?.getAttribute('heading') || '0'}°</div>
-          <div>Range: {(mapRef.current as any)?.getAttribute('range') || '1600'}m</div>
+          <div>Range: {(mapRef.current as any)?.getAttribute('range') || '2000'}m</div>
           <div>Center: {(mapRef.current as any)?.getAttribute('center') || 'loading'}</div>
           <div>Shadow: {(mapRef.current as any)?.shadowRoot ? '✓' : '✗'}</div>
         </div>
