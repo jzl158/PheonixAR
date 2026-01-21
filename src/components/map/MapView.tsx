@@ -169,8 +169,8 @@ export function MapView() {
       map3d.setAttribute('mode', 'hybrid');
       // Use lat,lng without altitude for more accurate positioning
       map3d.setAttribute('center', `${position.lat},${position.lng}`);
-      // Reduced range from 1500m to 800m for much closer, more precise view
-      map3d.setAttribute('range', '800');
+      // Range of 1200m provides good balance between context and precision
+      map3d.setAttribute('range', '1200');
       map3d.setAttribute('tilt', '67.5');
       map3d.setAttribute('heading', '0');
 
@@ -1402,12 +1402,12 @@ export function MapView() {
                 if (currentTilt > 45) {
                   // Low tilt (more top-down)
                   map3d.setAttribute('tilt', '15');
-                  map3d.setAttribute('range', '600');
+                  map3d.setAttribute('range', '800');
                   console.log('🗺️ Switched to top-down view');
                 } else {
                   // High tilt (more perspective)
                   map3d.setAttribute('tilt', '67.5');
-                  map3d.setAttribute('range', '800');
+                  map3d.setAttribute('range', '1200');
                   console.log('🏙️ Switched to 3D perspective view');
                 }
               }
@@ -1439,7 +1439,7 @@ export function MapView() {
           <div>Mode: {(mapRef.current as any)?.getAttribute('mode') || 'none'}</div>
           <div>Tilt: {(mapRef.current as any)?.getAttribute('tilt') || '67.5'}°</div>
           <div>Heading: {(mapRef.current as any)?.getAttribute('heading') || '0'}°</div>
-          <div>Range: {(mapRef.current as any)?.getAttribute('range') || '800'}m</div>
+          <div>Range: {(mapRef.current as any)?.getAttribute('range') || '1200'}m</div>
           <div>Center: {(mapRef.current as any)?.getAttribute('center') || 'loading'}</div>
           <div>Shadow: {(mapRef.current as any)?.shadowRoot ? '✓' : '✗'}</div>
         </div>
