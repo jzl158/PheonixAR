@@ -162,8 +162,9 @@ export function MapView() {
       // The web component expects attributes as strings initially
       // mode="hybrid" is REQUIRED for satellite imagery + 3D buildings
       map3d.setAttribute('mode', 'hybrid');
-      map3d.setAttribute('center', `${position.lat},${position.lng},0`);
-      map3d.setAttribute('range', '2000');
+      // Use lat,lng without altitude for more accurate positioning
+      map3d.setAttribute('center', `${position.lat},${position.lng}`);
+      map3d.setAttribute('range', '1500');
       map3d.setAttribute('tilt', '67.5');
       map3d.setAttribute('heading', '0');
 
@@ -1286,7 +1287,7 @@ export function MapView() {
           if (mapRef.current && position) {
             const map3d = mapRef.current as any;
             // Use property assignment to trigger smooth animation
-            map3d.center = { lat: position.lat, lng: position.lng, altitude: 0 };
+            map3d.center = { lat: position.lat, lng: position.lng };
             console.log('📍 Manually recentered to:', position);
           }
         }}

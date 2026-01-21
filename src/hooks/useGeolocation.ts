@@ -23,6 +23,12 @@ export function useGeolocation() {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
+      console.log('📍 GPS Update:', {
+        lat: coords.lat,
+        lng: coords.lng,
+        accuracy: position.coords.accuracy + 'm',
+        altitude: position.coords.altitude,
+      });
       setState({
         position: coords,
         error: null,
