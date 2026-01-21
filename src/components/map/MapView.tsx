@@ -315,15 +315,16 @@ export function MapView() {
       coins.forEach((coin) => {
         // Create 3D marker element
         const marker3d = document.createElement('gmp-marker-3d') as any;
-        marker3d.setAttribute('position', `${coin.position.lat},${coin.position.lng}`);
-        marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+        // Set position with altitude 0 to clamp to ground
+        marker3d.setAttribute('position', `${coin.position.lat},${coin.position.lng},0`);
+        marker3d.setAttribute('altitude-mode', 'clamp-to-ground');
 
         // Special handling for 1 coins - use custom image
         if (coin.value === 1) {
           const coinImg = document.createElement('img');
           coinImg.src = '/1coin.png';
-          coinImg.style.width = '30px';
-          coinImg.style.height = '30px';
+          coinImg.style.width = '20px';
+          coinImg.style.height = '20px';
 
           const templateForImg = document.createElement('template');
           templateForImg.content.append(coinImg);
