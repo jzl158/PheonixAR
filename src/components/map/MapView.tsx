@@ -112,7 +112,14 @@ export function MapView() {
       if (window.google && window.google.maps && customElements.get('gmp-map-3d')) {
         console.log('✅ Google Maps 3D API ready!');
         console.log('✅ gmp-map-3d custom element registered');
-        console.log('✅ Available: window.google.maps.Map3DElement:', window.google.maps.Map3DElement);
+        console.log('✅ Map3DElement:', window.google.maps.Map3DElement);
+        console.log('✅ Available Maps APIs:', Object.keys(window.google.maps));
+
+        // Check for importLibrary method
+        if (window.google.maps.importLibrary) {
+          console.log('✅ importLibrary available');
+        }
+
         setMapsLoaded(true);
         clearInterval(checkMapsLoaded);
       }
@@ -125,6 +132,7 @@ export function MapView() {
       } else if (!customElements.get('gmp-map-3d')) {
         console.error('⏱️ Timeout: gmp-map-3d custom element not registered');
         console.error('Check that libraries=maps3d is in the script URL');
+        console.error('Available custom elements:', Array.from(customElements.keys ? customElements.keys() : []));
       }
     }, 15000);
 
@@ -138,32 +146,48 @@ export function MapView() {
   useEffect(() => {
     if (!mapRef.current || !position || !mapsLoaded) return;
 
-    console.log('🗺️ Initializing Google 3D Map...');
-    console.log('📍 Position:', position);
+    console.log('═══════════════════════════════════════');
+    console.log('🚀 MapView v4.0 - Object Properties');
+    console.log('═══════════════════════════════════════');
 
     const map3d = mapRef.current as any;
 
     try {
-      console.log('🔧 Setting 3D map attributes...');
+      console.log('📍 Initializing with setAttribute (string format)...');
+      console.log('Position:', position);
 
-      // Set 3D map attributes - center must be an object when set via JS
-      map3d.center = { lat: position.lat, lng: position.lng, altitude: 0 };
-      map3d.range = 2000;
-      map3d.tilt = 75;
-      map3d.heading = 0;
-      map3d.defaultLabelsDisabled = false;
+      // CRITICAL: Use setAttribute() with STRING values to trigger proper initialization
+      // The web component expects attributes as strings initially
+      // mode="hybrid" is REQUIRED for satellite imagery + 3D buildings
+      map3d.setAttribute('mode', 'hybrid');
+      map3d.setAttribute('center', `${position.lat},${position.lng},0`);
+      map3d.setAttribute('range', '2000');
+      map3d.setAttribute('tilt', '67.5');
+      map3d.setAttribute('heading', '0');
 
-      console.log('✅ 3D Map attributes set');
-      console.log('Center:', map3d.center);
-      console.log('Range:', map3d.range);
-      console.log('Tilt:', map3d.tilt);
+      console.log('✅ Attributes set (string format with mode=hybrid)');
 
-      // For gmp-map-3d, we'll use it for visualization only
-      // Markers will need to be added as gmp-marker-3d children or via AdvancedMarkerElement
-      // Set a placeholder map state so the rest of the app knows the map is ready
+      // Wait a moment for the element to initialize, then check
+      setTimeout(() => {
+        console.log('🔍 Element diagnostics (after setAttribute):');
+        console.log('- Element dimensions:', map3d.offsetWidth, 'x', map3d.offsetHeight);
+        console.log('- Has shadow root:', !!map3d.shadowRoot);
+        console.log('- center property:', map3d.center);
+        console.log('- range property:', map3d.range);
+        console.log('- tilt property:', map3d.tilt);
+
+        if (map3d.shadowRoot) {
+          console.log('✅ Shadow root created! Map should be rendering.');
+          console.log('- Shadow root children:', map3d.shadowRoot.childNodes.length);
+        } else {
+          console.error('❌ Shadow root NOT created. Element may not have initialized.');
+        }
+      }, 500);
+
+      // Set map state so UI knows map is ready
       setMap(map3d as any);
 
-      console.log('✅ 3D Map initialized for visualization');
+      console.log('✅ 3D Map initialization attempted');
 
     } catch (error) {
       console.error('❌ Error initializing 3D map:', error);
@@ -171,14 +195,30 @@ export function MapView() {
   }, [mapsLoaded, position]);
 
   // Add user location marker
-  // TODO: Markers need to be implemented differently for gmp-map-3d
   useEffect(() => {
     if (!map || !position) return;
 
-    // Skip marker rendering for gmp-map-3d (for now)
+    // Handle 3D map markers differently
     if (map.tagName === 'GMP-MAP-3D') {
-      console.log('⏭️ Skipping marker rendering for gmp-map-3d (not yet implemented)');
-      return;
+      console.log('📍 Adding 3D user location marker...');
+
+      // Create 3D marker element with label attribute
+      const marker3d = document.createElement('gmp-marker-3d') as any;
+      marker3d.setAttribute('position', `${position.lat},${position.lng}`);
+      marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+      marker3d.setAttribute('label', '📍 You');
+
+      // Append to map
+      map.appendChild(marker3d);
+
+      console.log('✅ 3D user location marker added');
+
+      // Cleanup
+      return () => {
+        if (marker3d.parentNode) {
+          marker3d.parentNode.removeChild(marker3d);
+        }
+      };
     }
 
     console.log('📍 Adding user location marker at:', position);
@@ -211,8 +251,44 @@ export function MapView() {
   useEffect(() => {
     if (!map || !coins.length) return;
 
-    // Skip for gmp-map-3d (for now)
-    if (map.tagName === 'GMP-MAP-3D') return;
+    // Handle 3D map markers differently
+    if (map.tagName === 'GMP-MAP-3D') {
+      console.log('🪙 Rendering', coins.length, 'coins as 3D markers');
+
+      const marker3ds: any[] = [];
+
+      coins.forEach((coin) => {
+        // Create 3D marker element with label
+        const marker3d = document.createElement('gmp-marker-3d') as any;
+        marker3d.setAttribute('position', `${coin.position.lat},${coin.position.lng}`);
+        marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+        marker3d.setAttribute('label', `🪙 ${coin.value}`);
+
+        // Add click listener
+        marker3d.addEventListener('click', async () => {
+          console.log('💰 Coin clicked:', coin.value);
+          const success = await attemptCollectCoin(coin);
+          if (success && marker3d.parentNode) {
+            marker3d.parentNode.removeChild(marker3d);
+          }
+        });
+
+        // Append to map
+        map.appendChild(marker3d);
+        marker3ds.push(marker3d);
+      });
+
+      console.log('✅', marker3ds.length, '3D coin markers added');
+
+      // Cleanup function
+      return () => {
+        marker3ds.forEach(marker => {
+          if (marker.parentNode) {
+            marker.parentNode.removeChild(marker);
+          }
+        });
+      };
+    }
 
     console.log('🪙 Rendering', coins.length, 'coins as map markers');
 
@@ -414,7 +490,38 @@ export function MapView() {
   // Render homebases as map markers
   useEffect(() => {
     if (!map || !homebases.length) return;
-    if (map.tagName === 'GMP-MAP-3D') return;
+
+    // Handle 3D map markers
+    if (map.tagName === 'GMP-MAP-3D') {
+      console.log('🏠 Rendering', homebases.length, 'homebases as 3D markers');
+
+      const marker3ds: any[] = [];
+
+      homebases.forEach((homebase) => {
+        const marker3d = document.createElement('gmp-marker-3d') as any;
+        marker3d.setAttribute('position', `${homebase.position.lat},${homebase.position.lng}`);
+        marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+        marker3d.setAttribute('label', '🏠');
+
+        marker3d.addEventListener('click', () => {
+          console.log('🏠 Homebase clicked:', homebase.name);
+          alert(`🏠 ${homebase.name}\n\n${homebase.description || ''}\n\nAddress: ${homebase.address}\nPlus Code: ${homebase.plusCode}`);
+        });
+
+        map.appendChild(marker3d);
+        marker3ds.push(marker3d);
+      });
+
+      console.log('✅', marker3ds.length, 'Homebase 3D markers added');
+
+      return () => {
+        marker3ds.forEach(marker => {
+          if (marker.parentNode) {
+            marker.parentNode.removeChild(marker);
+          }
+        });
+      };
+    }
 
     console.log('🏠 Rendering', homebases.length, 'homebase markers');
 
@@ -473,7 +580,41 @@ export function MapView() {
   // Render Phoenix Coins (RARE) as map markers
   useEffect(() => {
     if (!map || !phoenixCoins.length) return;
-    if (map.tagName === 'GMP-MAP-3D') return;
+
+    // Handle 3D map markers
+    if (map.tagName === 'GMP-MAP-3D') {
+      console.log('🔥 Rendering', phoenixCoins.length, 'Phoenix Coins as 3D markers (rare)');
+
+      const marker3ds: any[] = [];
+
+      phoenixCoins.forEach((coin) => {
+        const marker3d = document.createElement('gmp-marker-3d') as any;
+        marker3d.setAttribute('position', `${coin.position.lat},${coin.position.lng}`);
+        marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+        marker3d.setAttribute('label', '🔥');
+
+        marker3d.addEventListener('click', async () => {
+          console.log('🔥 Phoenix Coin clicked');
+          const success = await attemptCollectPhoenixCoin(coin);
+          if (success && marker3d.parentNode) {
+            marker3d.parentNode.removeChild(marker3d);
+          }
+        });
+
+        map.appendChild(marker3d);
+        marker3ds.push(marker3d);
+      });
+
+      console.log('✅', marker3ds.length, 'Phoenix Coin 3D markers added');
+
+      return () => {
+        marker3ds.forEach(marker => {
+          if (marker.parentNode) {
+            marker.parentNode.removeChild(marker);
+          }
+        });
+      };
+    }
 
     console.log('🔥 Rendering', phoenixCoins.length, 'Phoenix Coins (rare)');
 
@@ -546,7 +687,41 @@ export function MapView() {
   // Render Nova Coins (SEMI-RARE) as map markers
   useEffect(() => {
     if (!map || !novaCoins.length) return;
-    if (map.tagName === 'GMP-MAP-3D') return;
+
+    // Handle 3D map markers
+    if (map.tagName === 'GMP-MAP-3D') {
+      console.log('⭐ Rendering', novaCoins.length, 'Nova Coins as 3D markers (semi-rare)');
+
+      const marker3ds: any[] = [];
+
+      novaCoins.forEach((coin) => {
+        const marker3d = document.createElement('gmp-marker-3d') as any;
+        marker3d.setAttribute('position', `${coin.position.lat},${coin.position.lng}`);
+        marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+        marker3d.setAttribute('label', '⭐');
+
+        marker3d.addEventListener('click', async () => {
+          console.log('⭐ Nova Coin clicked');
+          const success = await attemptCollectNovaCoin(coin);
+          if (success && marker3d.parentNode) {
+            marker3d.parentNode.removeChild(marker3d);
+          }
+        });
+
+        map.appendChild(marker3d);
+        marker3ds.push(marker3d);
+      });
+
+      console.log('✅', marker3ds.length, 'Nova Coin 3D markers added');
+
+      return () => {
+        marker3ds.forEach(marker => {
+          if (marker.parentNode) {
+            marker.parentNode.removeChild(marker);
+          }
+        });
+      };
+    }
 
     console.log('⭐ Rendering', novaCoins.length, 'Nova Coins (semi-rare)');
 
@@ -619,7 +794,37 @@ export function MapView() {
   // Render Gift Cards as map markers
   useEffect(() => {
     if (!map || !giftCards.length) return;
-    if (map.tagName === 'GMP-MAP-3D') return;
+
+    // Handle 3D map markers
+    if (map.tagName === 'GMP-MAP-3D') {
+      console.log('🎁 Rendering', giftCards.length, 'Gift Cards as 3D markers');
+
+      const marker3ds: any[] = [];
+
+      giftCards.forEach((giftCard) => {
+        const marker3d = document.createElement('gmp-marker-3d') as any;
+        marker3d.setAttribute('position', `${giftCard.position.lat},${giftCard.position.lng}`);
+        marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+        marker3d.setAttribute('label', '🎁');
+
+        marker3d.addEventListener('click', () => {
+          alert(`🎁 ${giftCard.title}\n\n${giftCard.description}\n\nValue: $${giftCard.value}\nMerchant: ${giftCard.merchantName}\n\nGet within ${giftCard.proximityRequired} feet to claim!`);
+        });
+
+        map.appendChild(marker3d);
+        marker3ds.push(marker3d);
+      });
+
+      console.log('✅', marker3ds.length, 'Gift Card 3D markers added');
+
+      return () => {
+        marker3ds.forEach(marker => {
+          if (marker.parentNode) {
+            marker.parentNode.removeChild(marker);
+          }
+        });
+      };
+    }
 
     console.log('🎁 Rendering', giftCards.length, 'Gift Card locations');
 
@@ -678,7 +883,27 @@ export function MapView() {
   // Render AR Experiences as map markers
   useEffect(() => {
     if (!map || !arExperiences.length) return;
-    if (map.tagName === 'GMP-MAP-3D') return;
+
+    // Handle 3D map markers
+    if (map.tagName === 'GMP-MAP-3D') {
+      const marker3ds: any[] = [];
+      arExperiences.forEach((arExp) => {
+        const marker3d = document.createElement('gmp-marker-3d') as any;
+        marker3d.setAttribute('position', `${arExp.position.lat},${arExp.position.lng}`);
+        marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+        marker3d.setAttribute('label', '📱');
+        marker3d.addEventListener('click', () => {
+          alert(`📱 ${arExp.title}\n\n${arExp.description}\n\nGet within ${arExp.proximityRequired} feet to activate!`);
+        });
+        map.appendChild(marker3d);
+        marker3ds.push(marker3d);
+      });
+      return () => {
+        marker3ds.forEach(marker => {
+          if (marker.parentNode) marker.parentNode.removeChild(marker);
+        });
+      };
+    }
 
     console.log('📱 Rendering', arExperiences.length, 'AR Experience locations');
 
@@ -736,7 +961,27 @@ export function MapView() {
   // Render Terminus DAO Stops as map markers
   useEffect(() => {
     if (!map || !terminusStops.length) return;
-    if (map.tagName === 'GMP-MAP-3D') return;
+
+    // Handle 3D map markers
+    if (map.tagName === 'GMP-MAP-3D') {
+      const marker3ds: any[] = [];
+      terminusStops.forEach((stop) => {
+        const marker3d = document.createElement('gmp-marker-3d') as any;
+        marker3d.setAttribute('position', `${stop.position.lat},${stop.position.lng}`);
+        marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+        marker3d.setAttribute('label', '🚉');
+        marker3d.addEventListener('click', () => {
+          alert(`🚉 ${stop.name}\n\n${stop.description}\n\nBadges: ${stop.badges?.join(', ') || 'Various'}\n\nGet within ${stop.proximityRequired} feet to participate!`);
+        });
+        map.appendChild(marker3d);
+        marker3ds.push(marker3d);
+      });
+      return () => {
+        marker3ds.forEach(marker => {
+          if (marker.parentNode) marker.parentNode.removeChild(marker);
+        });
+      };
+    }
 
     console.log('🚉 Rendering', terminusStops.length, 'Terminus DAO stops');
 
@@ -789,7 +1034,27 @@ export function MapView() {
   // Render Grillz locations as map markers
   useEffect(() => {
     if (!map || !grillz.length) return;
-    if (map.tagName === 'GMP-MAP-3D') return;
+
+    // Handle 3D map markers
+    if (map.tagName === 'GMP-MAP-3D') {
+      const marker3ds: any[] = [];
+      grillz.forEach((grillzLoc) => {
+        const marker3d = document.createElement('gmp-marker-3d') as any;
+        marker3d.setAttribute('position', `${grillzLoc.position.lat},${grillzLoc.position.lng}`);
+        marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+        marker3d.setAttribute('label', '✨');
+        marker3d.addEventListener('click', () => {
+          alert(`✨ ${grillzLoc.name}\n\n${grillzLoc.description}\n\nGet within ${grillzLoc.proximityRequired} feet to claim!`);
+        });
+        map.appendChild(marker3d);
+        marker3ds.push(marker3d);
+      });
+      return () => {
+        marker3ds.forEach(marker => {
+          if (marker.parentNode) marker.parentNode.removeChild(marker);
+        });
+      };
+    }
 
     console.log('✨ Rendering', grillz.length, 'Grillz locations');
 
@@ -847,7 +1112,27 @@ export function MapView() {
   // Render LPW Chicken locations as map markers
   useEffect(() => {
     if (!map || !lpwChicken.length) return;
-    if (map.tagName === 'GMP-MAP-3D') return;
+
+    // Handle 3D map markers
+    if (map.tagName === 'GMP-MAP-3D') {
+      const marker3ds: any[] = [];
+      lpwChicken.forEach((lpw) => {
+        const marker3d = document.createElement('gmp-marker-3d') as any;
+        marker3d.setAttribute('position', `${lpw.position.lat},${lpw.position.lng}`);
+        marker3d.setAttribute('altitude-mode', 'relative-to-ground');
+        marker3d.setAttribute('label', '🍗');
+        marker3d.addEventListener('click', () => {
+          alert(`🍗 ${lpw.name}\n\n${lpw.description}\n\nGet within ${lpw.proximityRequired} feet to find that Lemon Pepper Wet!`);
+        });
+        map.appendChild(marker3d);
+        marker3ds.push(marker3d);
+      });
+      return () => {
+        marker3ds.forEach(marker => {
+          if (marker.parentNode) marker.parentNode.removeChild(marker);
+        });
+      };
+    }
 
     console.log('🍗 Rendering', lpwChicken.length, 'LPW Chicken locations');
 
@@ -965,7 +1250,7 @@ export function MapView() {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden" style={{ background: '#1a1a1a' }}>
-      {/* Google 3D Maps Container - center is set programmatically */}
+      {/* Google 3D Maps Container - DO NOT set center/range/tilt as JSX props */}
       <gmp-map-3d
         ref={mapRef}
         style={{
@@ -989,7 +1274,8 @@ export function MapView() {
           // Recenter 3D map on user location
           if (mapRef.current && position) {
             const map3d = mapRef.current as any;
-            map3d.center = { lat: position.lat, lng: position.lng, altitude: 0 };
+            map3d.setAttribute('center', `${position.lat},${position.lng},0`);
+            console.log('📍 Recentered to:', position);
           }
         }}
         onPhoenixClick={() => setActivePanel('offers')}
@@ -1021,27 +1307,96 @@ export function MapView() {
           <span className="text-xl">{debugMode ? '🔧' : '⚙️'}</span>
         </button>
 
+        {/* 3D Map Rotation Controls */}
+        {map && map.tagName === 'GMP-MAP-3D' && (
+          <>
+            <div className="bg-black/70 backdrop-blur-md rounded-full p-2 shadow-lg">
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => {
+                    if (mapRef.current) {
+                      const map3d = mapRef.current as any;
+                      const currentTilt = parseFloat(map3d.getAttribute('tilt') || '67.5');
+                      map3d.setAttribute('tilt', Math.min(90, currentTilt + 10).toString());
+                    }
+                  }}
+                  className="text-white text-xl hover:scale-110 transition-transform"
+                  title="Tilt up"
+                >
+                  ⬆️
+                </button>
+                <button
+                  onClick={() => {
+                    if (mapRef.current) {
+                      const map3d = mapRef.current as any;
+                      const currentTilt = parseFloat(map3d.getAttribute('tilt') || '67.5');
+                      map3d.setAttribute('tilt', Math.max(0, currentTilt - 10).toString());
+                    }
+                  }}
+                  className="text-white text-xl hover:scale-110 transition-transform"
+                  title="Tilt down"
+                >
+                  ⬇️
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-black/70 backdrop-blur-md rounded-full p-2 shadow-lg">
+              <div className="flex flex-col gap-1">
+                <button
+                  onClick={() => {
+                    if (mapRef.current) {
+                      const map3d = mapRef.current as any;
+                      const currentHeading = parseFloat(map3d.getAttribute('heading') || '0');
+                      map3d.setAttribute('heading', ((currentHeading - 45 + 360) % 360).toString());
+                    }
+                  }}
+                  className="text-white text-xl hover:scale-110 transition-transform"
+                  title="Rotate counter-clockwise"
+                >
+                  ↶
+                </button>
+                <button
+                  onClick={() => {
+                    if (mapRef.current) {
+                      const map3d = mapRef.current as any;
+                      const currentHeading = parseFloat(map3d.getAttribute('heading') || '0');
+                      map3d.setAttribute('heading', ((currentHeading + 45) % 360).toString());
+                    }
+                  }}
+                  className="text-white text-xl hover:scale-110 transition-transform"
+                  title="Rotate clockwise"
+                >
+                  ↷
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+
         {debugMode && (
           <button
             onClick={() => {
               if (mapRef.current) {
                 const map3d = mapRef.current as any;
-                const currentTilt = map3d.tilt || 75;
+                const currentTilt = parseFloat(map3d.getAttribute('tilt') || '67.5');
                 if (currentTilt > 45) {
                   // Low tilt (more top-down)
-                  map3d.tilt = 15;
-                  map3d.range = 1000;
+                  map3d.setAttribute('tilt', '15');
+                  map3d.setAttribute('range', '1000');
+                  console.log('🗺️ Switched to top-down view');
                 } else {
                   // High tilt (more perspective)
-                  map3d.tilt = 75;
-                  map3d.range = 2000;
+                  map3d.setAttribute('tilt', '67.5');
+                  map3d.setAttribute('range', '2000');
+                  console.log('🏙️ Switched to 3D perspective view');
                 }
               }
             }}
             className="bg-black/70 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-bold text-sm shadow-lg hover:bg-black/80 transition-all active:scale-95"
           >
             {(() => {
-              const currentTilt = (mapRef.current as any)?.tilt || 75;
+              const currentTilt = parseFloat((mapRef.current as any)?.getAttribute('tilt') || '67.5');
               return currentTilt > 45 ? '🗺️ Top View' : '🏙️ 3D View';
             })()}
           </button>
@@ -1061,11 +1416,12 @@ export function MapView() {
           <div>Lng: {position.lng.toFixed(6)}</div>
           <div>Coins: {coins.length}</div>
           <div>Maps 3D: {mapsLoaded ? '✓' : '✗'}</div>
-          <div>Mode: {(mapRef.current as any)?.mode || 'hybrid'}</div>
-          <div>Tilt: {(mapRef.current as any)?.tilt || '75'}°</div>
-          <div>Heading: {(mapRef.current as any)?.heading || '0'}°</div>
-          <div>Range: {(mapRef.current as any)?.range || '2000'}m</div>
-          <div>Center: {(mapRef.current as any)?.center || 'loading'}</div>
+          <div>Mode: {(mapRef.current as any)?.getAttribute('mode') || 'none'}</div>
+          <div>Tilt: {(mapRef.current as any)?.getAttribute('tilt') || '67.5'}°</div>
+          <div>Heading: {(mapRef.current as any)?.getAttribute('heading') || '0'}°</div>
+          <div>Range: {(mapRef.current as any)?.getAttribute('range') || '2000'}m</div>
+          <div>Center: {(mapRef.current as any)?.getAttribute('center') || 'loading'}</div>
+          <div>Shadow: {(mapRef.current as any)?.shadowRoot ? '✓' : '✗'}</div>
         </div>
       )}
 
