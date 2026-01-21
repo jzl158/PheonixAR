@@ -165,6 +165,12 @@ export function MapView() {
       map3d.setAttribute('tilt', '67.5');
       map3d.setAttribute('heading', '0');
 
+      // Enable gesture controls for touch interaction
+      map3d.setAttribute('disable-default-ui', 'false');
+      map3d.style.touchAction = 'pan-x pan-y';
+
+      console.log('✅ Gesture controls enabled');
+
       console.log('✅ Attributes set (string format with mode=hybrid)');
 
       // Wait a moment for the element to initialize, then check
@@ -1260,6 +1266,8 @@ export function MapView() {
           top: 0,
           left: 0,
           zIndex: 1,
+          touchAction: 'pan-x pan-y pinch-zoom',
+          pointerEvents: 'auto',
         }}
       />
 
