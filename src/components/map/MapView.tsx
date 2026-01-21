@@ -313,11 +313,25 @@ export function MapView() {
       const marker3ds: any[] = [];
 
       coins.forEach((coin) => {
-        // Create 3D marker element with label
+        // Create 3D marker element
         const marker3d = document.createElement('gmp-marker-3d') as any;
         marker3d.setAttribute('position', `${coin.position.lat},${coin.position.lng}`);
         marker3d.setAttribute('altitude-mode', 'relative-to-ground');
-        marker3d.setAttribute('label', `🪙 ${coin.value}`);
+
+        // Special handling for 1 coins - use custom image
+        if (coin.value === 1) {
+          const coinImg = document.createElement('img');
+          coinImg.src = '/1coin.png';
+          coinImg.style.width = '60px';
+          coinImg.style.height = '60px';
+
+          const templateForImg = document.createElement('template');
+          templateForImg.content.append(coinImg);
+          marker3d.append(templateForImg);
+        } else {
+          // Use label for other coin values
+          marker3d.setAttribute('label', `🪙 ${coin.value}`);
+        }
 
         // Add click listener
         marker3d.addEventListener('click', async () => {
