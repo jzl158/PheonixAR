@@ -200,36 +200,62 @@ export function MapView() {
         }
       }, 2000);
 
-      // Add custom 3D model at user location
+      // Add custom 3D model at user location - wait for map to be ready
       const add3DModel = async () => {
         try {
-          console.log('🎨 Adding custom 3D model at user location...');
+          console.log('🎨 Attempting to add custom 3D model...');
+          console.log('🎨 User position:', position);
 
-          // Import Model3DInteractiveElement
-          const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
+          // Wait a bit for map to fully initialize
+          await new Promise(resolve => setTimeout(resolve, 3000));
 
-          // Create 3D model at user's location
-          const model = new Model3DInteractiveElement({
-            src: 'https://maps-docs-team.web.app/assets/windmill.glb',
-            position: { lat: position.lat, lng: position.lng, altitude: 0 },
-            orientation: { heading: 0, tilt: 270, roll: 90 },
-            scale: 0.15,
-            altitudeMode: 'CLAMP_TO_GROUND',
-          });
+          // Try using the web component approach first
+          const modelElement = document.createElement('gmp-model-3d') as any;
 
-          // Add click listener
-          model.addEventListener('gmp-click', (event: any) => {
-            const clickedModel = event.target;
-            clickedModel.scale = Math.random() * (0.5 - 0.1) + 0.1;
-            console.log('🎨 3D Model clicked! New scale:', clickedModel.scale);
-          });
+          if (modelElement) {
+            console.log('🎨 Using gmp-model-3d web component...');
 
-          // Append model to map
-          map3d.append(model);
+            modelElement.setAttribute('src', 'https://maps-docs-team.web.app/assets/windmill.glb');
+            modelElement.setAttribute('position', `${position.lat},${position.lng},0`);
+            modelElement.setAttribute('orientation', '0,270,90');
+            modelElement.setAttribute('scale', '0.5');
+            modelElement.setAttribute('altitude-mode', 'clamp-to-ground');
 
-          console.log('✅ Custom 3D model added at user location');
+            modelElement.addEventListener('gmp-click', () => {
+              const newScale = Math.random() * (1.0 - 0.3) + 0.3;
+              modelElement.setAttribute('scale', newScale.toString());
+              console.log('🎨 3D Model clicked! New scale:', newScale);
+            });
+
+            map3d.appendChild(modelElement);
+            console.log('✅ gmp-model-3d element added to map');
+          } else {
+            // Fallback to programmatic API
+            console.log('🎨 Trying Model3DInteractiveElement API...');
+            const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
+
+            const model = new Model3DInteractiveElement({
+              src: 'https://maps-docs-team.web.app/assets/windmill.glb',
+              position: { lat: position.lat, lng: position.lng, altitude: 0 },
+              orientation: { heading: 0, tilt: 270, roll: 90 },
+              scale: 0.5,
+              altitudeMode: 'CLAMP_TO_GROUND',
+            });
+
+            model.addEventListener('gmp-click', (event: any) => {
+              const clickedModel = event.target;
+              clickedModel.scale = Math.random() * (1.0 - 0.3) + 0.3;
+              console.log('🎨 3D Model clicked! New scale:', clickedModel.scale);
+            });
+
+            map3d.append(model);
+            console.log('✅ Model3DInteractiveElement added to map');
+          }
+
+          console.log('✅ Custom 3D model loading...');
         } catch (error) {
           console.error('❌ Error adding 3D model:', error);
+          console.error('Error details:', JSON.stringify(error, null, 2));
         }
       };
 
