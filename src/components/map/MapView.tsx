@@ -141,12 +141,15 @@ export function MapView() {
     };
   }, []);
 
-  // Initialize 3D map when API loads and position is available
+  // Track if map has been initialized
+  const [mapInitialized, setMapInitialized] = useState(false);
+
+  // Initialize 3D map when API loads and position is available (ONCE)
   useEffect(() => {
-    if (!mapRef.current || !position || !mapsLoaded) return;
+    if (!mapRef.current || !position || !mapsLoaded || mapInitialized) return;
 
     console.log('═══════════════════════════════════════');
-    console.log('🚀 MapView v4.0 - Object Properties');
+    console.log('🚀 MapView v5.0 - Single Init, Free Navigation');
     console.log('═══════════════════════════════════════');
 
     const map3d = mapRef.current as any;
@@ -165,10 +168,10 @@ export function MapView() {
       map3d.setAttribute('heading', '0');
 
       // Enable gesture controls for touch interaction
-      map3d.setAttribute('disable-default-ui', 'false');
-      map3d.style.touchAction = 'pan-x pan-y';
+      // Don't disable default UI - it handles gestures
+      map3d.style.touchAction = 'none'; // Let the map handle all touch events
 
-      console.log('✅ Gesture controls enabled');
+      console.log('✅ Gesture controls enabled (one finger pan, two finger tilt/rotate)');
 
       console.log('✅ Attributes set (string format with mode=hybrid)');
 
@@ -191,13 +194,14 @@ export function MapView() {
 
       // Set map state so UI knows map is ready
       setMap(map3d as any);
+      setMapInitialized(true); // Mark as initialized so we don't reset center on position updates
 
-      console.log('✅ 3D Map initialization attempted');
+      console.log('✅ 3D Map initialization attempted - will not auto-recenter');
 
     } catch (error) {
       console.error('❌ Error initializing 3D map:', error);
     }
-  }, [mapsLoaded, position]);
+  }, [mapsLoaded, position, mapInitialized]);
 
   // Add user location marker
   useEffect(() => {
@@ -1265,7 +1269,7 @@ export function MapView() {
           top: 0,
           left: 0,
           zIndex: 1,
-          touchAction: 'pan-x pan-y pinch-zoom',
+          touchAction: 'none',
           pointerEvents: 'auto',
         }}
       />
@@ -1278,11 +1282,12 @@ export function MapView() {
       {/* Expandable Menu Bar */}
       <ExpandableMenu
         onPinClick={() => {
-          // Recenter 3D map on user location
+          // Recenter 3D map on user location (manual recenter)
           if (mapRef.current && position) {
             const map3d = mapRef.current as any;
-            map3d.setAttribute('center', `${position.lat},${position.lng},0`);
-            console.log('📍 Recentered to:', position);
+            // Use property assignment to trigger smooth animation
+            map3d.center = { lat: position.lat, lng: position.lng, altitude: 0 };
+            console.log('📍 Manually recentered to:', position);
           }
         }}
         onPhoenixClick={() => setActivePanel('offers')}
