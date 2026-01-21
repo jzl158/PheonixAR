@@ -221,11 +221,10 @@ export function MapView() {
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
-          // Add click listener to randomly scale the model
-          model.addEventListener('gmp-click', (event: any) => {
-            const clickedModel = event.target;
-            clickedModel.scale = Math.random() * (0.5 - 0.1) + 0.1;
-            console.log('🎨 3D Model clicked! New scale:', clickedModel.scale);
+          // Add click listener to open Public Art Futures Lab website
+          model.addEventListener('gmp-click', () => {
+            console.log('🎨 3D Model clicked! Opening Public Art Futures Lab...');
+            window.open('https://publicartfutureslab.com/', '_blank');
           });
 
           // Append model to map
