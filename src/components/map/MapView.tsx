@@ -1,13 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGeolocation } from '../../hooks/useGeolocation';
-import { useCoins } from '../../hooks/useCoins';
-import { useSpecialCoins } from '../../hooks/useSpecialCoins';
+// import { useCoins } from '../../hooks/useCoins';
+// import { useSpecialCoins } from '../../hooks/useSpecialCoins';
 import { useGameStore } from '../../store/gameStore';
 import { getAllHomebases } from '../../data/homebases';
-import { getAllGiftCards } from '../../data/giftCards';
-import { getAllARExperiences } from '../../data/arExperiences';
-import { getAllTerminusDAOStops } from '../../data/terminusDAO';
-import { getAllGrillz, getAllLPWChicken } from '../../data/atlantaGems';
+// import { getAllGiftCards } from '../../data/giftCards';
+// import { getAllARExperiences } from '../../data/arExperiences';
+// import { getAllTerminusDAOStops } from '../../data/terminusDAO';
+// import { getAllGrillz, getAllLPWChicken } from '../../data/atlantaGems';
 import { TopBar } from '../navigation/TopBar';
 import { ExpandableMenu } from '../navigation/ExpandableMenu';
 import { ProfilePage } from '../profile/ProfilePage';
@@ -1654,10 +1654,10 @@ export function MapView() {
         )}
       </div>
 
-      {/* Coin Counter */}
-      <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 z-20 bg-primary-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-xl pointer-events-none">
+      {/* Coin Counter - Disabled for now (using 3D objects instead) */}
+      {/* <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 z-20 bg-primary-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-xl pointer-events-none">
         <span className="text-lg font-bold">🪙 {coins.length} coins nearby</span>
-      </div>
+      </div> */}
 
       {/* Debug info - only visible in debug mode */}
       {debugMode && (
@@ -1666,7 +1666,6 @@ export function MapView() {
           <div>Lat: {position.lat.toFixed(6)}</div>
           <div>Lng: {position.lng.toFixed(6)}</div>
           <div>GPS Accuracy: {gpsAccuracy ? `${gpsAccuracy.toFixed(1)}m` : 'unknown'}</div>
-          <div>Coins: {coins.length}</div>
           <div>Maps 3D: {mapsLoaded ? '✓' : '✗'}</div>
           <div>Mode: {(mapRef.current as any)?.getAttribute('mode') || 'none'}</div>
           <div>Tilt: {(mapRef.current as any)?.getAttribute('tilt') || '50'}°</div>
