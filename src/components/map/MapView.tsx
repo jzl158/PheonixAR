@@ -387,6 +387,8 @@ export function MapView() {
     }
   }, [position, accuracy, map]);
 
+  // TODO: Marker rendering disabled - will use 3D objects instead
+  /*
   // Render coins as Google Maps markers
   useEffect(() => {
     if (!map || !coins.length) return;
@@ -1429,6 +1431,7 @@ export function MapView() {
       markers.forEach(marker => marker.setMap(null));
     };
   }, [map, lpwChicken]);
+  */
 
   if (isLoading) {
     return (
