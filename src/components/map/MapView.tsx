@@ -43,6 +43,9 @@ export function MapView() {
   type ActivePanel = 'none' | 'profile' | 'offers' | 'leaderboard' | 'notifications' | 'friends' | 'chat';
   const [activePanel, setActivePanel] = useState<ActivePanel>('none');
 
+  // Collection animation state
+  const [collectionAnimations, setCollectionAnimations] = useState<{ id: string; value: number; x: number; y: number }[]>([]);
+
   // Load 8th Wall AR script
   useEffect(() => {
     const appKey = import.meta.env.VITE_EIGHTH_WALL_APP_KEY;
@@ -396,8 +399,23 @@ export function MapView() {
               marker3d.append(templateForImg);
 
               // Add click listener
-              marker3d.addEventListener('gmp-click', async () => {
+              marker3d.addEventListener('gmp-click', async (event: any) => {
                 console.log('💰 Coin clicked:', coin.value);
+
+                // Show collection animation at center of screen
+                const animId = `anim_${Date.now()}`;
+                setCollectionAnimations(prev => [...prev, {
+                  id: animId,
+                  value: coin.value,
+                  x: window.innerWidth / 2,
+                  y: window.innerHeight / 2,
+                }]);
+
+                // Remove animation after 1 second
+                setTimeout(() => {
+                  setCollectionAnimations(prev => prev.filter(a => a.id !== animId));
+                }, 1000);
+
                 const success = await attemptCollectCoin(coin);
                 if (success && marker3d.parentNode) {
                   marker3d.parentNode.removeChild(marker3d);
@@ -416,8 +434,23 @@ export function MapView() {
               });
 
               // Add click listener
-              marker3d.addEventListener('gmp-click', async () => {
+              marker3d.addEventListener('gmp-click', async (event: any) => {
                 console.log('💰 Coin clicked:', coin.value);
+
+                // Show collection animation at center of screen
+                const animId = `anim_${Date.now()}`;
+                setCollectionAnimations(prev => [...prev, {
+                  id: animId,
+                  value: coin.value,
+                  x: window.innerWidth / 2,
+                  y: window.innerHeight / 2,
+                }]);
+
+                // Remove animation after 1 second
+                setTimeout(() => {
+                  setCollectionAnimations(prev => prev.filter(a => a.id !== animId));
+                }, 1000);
+
                 const success = await attemptCollectCoin(coin);
                 if (success && marker3d.parentNode) {
                   marker3d.parentNode.removeChild(marker3d);
@@ -437,8 +470,23 @@ export function MapView() {
             });
 
             // Add click listener
-            marker3d.addEventListener('gmp-click', async () => {
+            marker3d.addEventListener('gmp-click', async (event: any) => {
               console.log('💰 Coin clicked:', coin.value);
+
+              // Show collection animation at center of screen
+              const animId = `anim_${Date.now()}`;
+              setCollectionAnimations(prev => [...prev, {
+                id: animId,
+                value: coin.value,
+                x: window.innerWidth / 2,
+                y: window.innerHeight / 2,
+              }]);
+
+              // Remove animation after 1 second
+              setTimeout(() => {
+                setCollectionAnimations(prev => prev.filter(a => a.id !== animId));
+              }, 1000);
+
               const success = await attemptCollectCoin(coin);
               if (success && marker3d.parentNode) {
                 marker3d.parentNode.removeChild(marker3d);
@@ -1639,6 +1687,43 @@ export function MapView() {
           </div>
         </div>
       )}
+
+      {/* Collection Animations */}
+      {collectionAnimations.map(anim => (
+        <div
+          key={anim.id}
+          style={{
+            position: 'fixed',
+            left: anim.x,
+            top: anim.y,
+            transform: 'translate(-50%, -50%)',
+            zIndex: 10000,
+            pointerEvents: 'none',
+            animation: 'collectCoin 1s ease-out forwards',
+          }}
+          className="text-6xl font-bold text-yellow-400"
+        >
+          +{anim.value}
+        </div>
+      ))}
+
+      {/* Collection Animation CSS */}
+      <style>{`
+        @keyframes collectCoin {
+          0% {
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: 1;
+          }
+          50% {
+            transform: translate(-50%, -100px) scale(1.5);
+            opacity: 1;
+          }
+          100% {
+            transform: translate(-50%, -200px) scale(2);
+            opacity: 0;
+          }
+        }
+      `}</style>
     </div>
   );
 }
