@@ -30,9 +30,9 @@ declare global {
 
 export function MapView() {
   const { position, isLoading, error, accuracy } = useGeolocation();
-  const { coins, attemptCollectCoin } = useCoins(position);
-  const { phoenixCoins, novaCoins, attemptCollectPhoenixCoin, attemptCollectNovaCoin } = useSpecialCoins(position);
-  const { homebases, setHomebases } = useGameStore();
+  // const { coins, attemptCollectCoin } = useCoins(position);
+  // const { phoenixCoins, novaCoins, attemptCollectPhoenixCoin, attemptCollectNovaCoin } = useSpecialCoins(position);
+  const { setHomebases } = useGameStore();
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [map, setMap] = useState<google.maps.Map | any>(null);
@@ -89,23 +89,23 @@ export function MapView() {
     }
   };
 
-  // State for all location types
-  const [giftCards, _setGiftCards] = useState(getAllGiftCards());
-  const [arExperiences, _setARExperiences] = useState(getAllARExperiences());
-  const [terminusStops, _setTerminusStops] = useState(getAllTerminusDAOStops());
-  const [grillz, _setGrillz] = useState(getAllGrillz());
-  const [lpwChicken, _setLPWChicken] = useState(getAllLPWChicken());
+  // State for all location types - commented out for now (using 3D objects instead)
+  // const [giftCards, _setGiftCards] = useState(getAllGiftCards());
+  // const [arExperiences, _setARExperiences] = useState(getAllARExperiences());
+  // const [terminusStops, _setTerminusStops] = useState(getAllTerminusDAOStops());
+  // const [grillz, _setGrillz] = useState(getAllGrillz());
+  // const [lpwChicken, _setLPWChicken] = useState(getAllLPWChicken());
 
   // Load homebases on mount
   useEffect(() => {
     const loadedHomebases = getAllHomebases();
     setHomebases(loadedHomebases);
     console.log('🏠 Loaded', loadedHomebases.length, 'homebases');
-    console.log('🎁 Loaded', giftCards.length, 'gift cards');
-    console.log('📱 Loaded', arExperiences.length, 'AR experiences');
-    console.log('🚉 Loaded', terminusStops.length, 'Terminus DAO stops');
-    console.log('✨ Loaded', grillz.length, 'Grillz locations');
-    console.log('🍗 Loaded', lpwChicken.length, 'LPW Chicken locations');
+    // console.log('🎁 Loaded', giftCards.length, 'gift cards');
+    // console.log('📱 Loaded', arExperiences.length, 'AR experiences');
+    // console.log('🚉 Loaded', terminusStops.length, 'Terminus DAO stops');
+    // console.log('✨ Loaded', grillz.length, 'Grillz locations');
+    // console.log('🍗 Loaded', lpwChicken.length, 'LPW Chicken locations');
   }, [setHomebases]);
 
   // Wait for Google Maps 3D to load
