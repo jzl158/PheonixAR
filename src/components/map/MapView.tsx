@@ -224,10 +224,32 @@ export function MapView() {
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
-          // Add click listener to open Public Art Futures Lab website
+          // Add click listener to collect 47 points
           model.addEventListener('gmp-click', () => {
-            console.log('🎨 3D Model clicked! Opening Public Art Futures Lab...');
-            window.open('https://publicartfutureslab.com/', '_blank');
+            console.log('🎨 Windmill collected! +47 points');
+
+            // Show collection animation at center of screen
+            const animId = `anim_${Date.now()}`;
+            setCollectionAnimations(prev => [...prev, {
+              id: animId,
+              value: 47,
+              x: window.innerWidth / 2,
+              y: window.innerHeight / 2,
+            }]);
+
+            // Remove animation after 1 second
+            setTimeout(() => {
+              setCollectionAnimations(prev => prev.filter(a => a.id !== animId));
+            }, 1000);
+
+            // Add 47 points to user's balance
+            const { collectCoin } = useGameStore.getState();
+            collectCoin('windmill', 47);
+
+            // Remove the windmill from the map
+            if (model.parentNode) {
+              model.parentNode.removeChild(model);
+            }
           });
 
           // Append model to map
