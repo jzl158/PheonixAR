@@ -217,7 +217,7 @@ export function MapView() {
 
           // Create 3D model at user's location using local GLB file
           const model = new Model3DInteractiveElement({
-            src: '/cryptostand.glb', // Local file from public folder
+            src: '/windmill.glb', // Local file from public folder
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 270, roll: 90 },
             scale: 0.15,
@@ -226,7 +226,7 @@ export function MapView() {
 
           // Add click listener to collect 47 points
           model.addEventListener('gmp-click', () => {
-            console.log('🎨 Crypto Stand collected! +47 points');
+            console.log('🎨 Windmill collected! +47 points');
 
             // Show collection animation at center of screen
             const animId = `anim_${Date.now()}`;
@@ -244,9 +244,9 @@ export function MapView() {
 
             // Add 47 points to user's balance
             const { collectCoin } = useGameStore.getState();
-            collectCoin('cryptostand', 47);
+            collectCoin('windmill', 47);
 
-            // Remove the crypto stand from the map
+            // Remove the windmill from the map
             if (model.parentNode) {
               model.parentNode.removeChild(model);
             }
