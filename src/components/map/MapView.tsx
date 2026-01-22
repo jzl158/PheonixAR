@@ -399,7 +399,7 @@ export function MapView() {
               marker3d.append(templateForImg);
 
               // Add click listener
-              marker3d.addEventListener('gmp-click', async (event: any) => {
+              marker3d.addEventListener('gmp-click', async () => {
                 console.log('💰 Coin clicked:', coin.value);
 
                 // Show collection animation at center of screen
@@ -434,7 +434,7 @@ export function MapView() {
               });
 
               // Add click listener
-              marker3d.addEventListener('gmp-click', async (event: any) => {
+              marker3d.addEventListener('gmp-click', async () => {
                 console.log('💰 Coin clicked:', coin.value);
 
                 // Show collection animation at center of screen
@@ -470,7 +470,7 @@ export function MapView() {
             });
 
             // Add click listener
-            marker3d.addEventListener('gmp-click', async (event: any) => {
+            marker3d.addEventListener('gmp-click', async () => {
               console.log('💰 Coin clicked:', coin.value);
 
               // Show collection animation at center of screen
