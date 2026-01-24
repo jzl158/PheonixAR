@@ -215,12 +215,16 @@ export function MapView() {
           // Import Model3DInteractiveElement
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
+          // TEST: Temporarily using windmill to verify code works
+          const modelSrc = '/windmill.glb';
+          console.log('🎯 TEST: Loading windmill to verify code path works');
+
           // Create 3D model at user's location using local GLB file
           const model = new Model3DInteractiveElement({
-            src: '/person0.glb', // Local file from public folder
+            src: modelSrc,
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
-            orientation: { heading: 0, tilt: 0, roll: 0 },
-            scale: 2.0,
+            orientation: { heading: 0, tilt: 270, roll: 90 },
+            scale: 0.15,
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
