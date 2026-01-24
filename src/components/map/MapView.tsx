@@ -239,9 +239,9 @@ export function MapView() {
 
           console.log('📦 Model created, waiting for load...', model);
 
-          // Add click listener to collect 47 points
-          model.addEventListener('gmp-click', () => {
-            console.log('🧍 Person collected! +47 points');
+          // Add click listener to collect 47 points and reveal windmill
+          model.addEventListener('gmp-click', async () => {
+            console.log('🧍 Person collected! +47 points - Unlocking hidden item...');
 
             // Show collection animation at center of screen
             const animId = `anim_${Date.now()}`;
@@ -265,6 +265,48 @@ export function MapView() {
             if (model.parentNode) {
               model.parentNode.removeChild(model);
             }
+
+            // Reveal windmill in the same location after a brief delay
+            setTimeout(async () => {
+              console.log('🎁 Revealing hidden windmill...');
+
+              const windmill = new Model3DInteractiveElement({
+                src: '/windmill.glb',
+                position: { lat: position.lat, lng: position.lng, altitude: 0 },
+                orientation: { heading: 0, tilt: 270, roll: 90 },
+                scale: 15,
+                altitudeMode: 'CLAMP_TO_GROUND',
+              });
+
+              // Make windmill collectible too
+              windmill.addEventListener('gmp-click', () => {
+                console.log('🎨 Windmill collected! +100 points');
+
+                // Show collection animation
+                const windmillAnimId = `anim_${Date.now()}`;
+                setCollectionAnimations(prev => [...prev, {
+                  id: windmillAnimId,
+                  value: 100,
+                  x: window.innerWidth / 2,
+                  y: window.innerHeight / 2,
+                }]);
+
+                setTimeout(() => {
+                  setCollectionAnimations(prev => prev.filter(a => a.id !== windmillAnimId));
+                }, 1000);
+
+                const { collectCoin } = useGameStore.getState();
+                collectCoin('windmill', 100);
+
+                // Remove windmill
+                if (windmill.parentNode) {
+                  windmill.parentNode.removeChild(windmill);
+                }
+              });
+
+              map3d.append(windmill);
+              console.log('✅ Windmill revealed!');
+            }, 500);
           });
 
           // Append model to map
