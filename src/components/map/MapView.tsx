@@ -278,7 +278,7 @@ export function MapView() {
                   src: '/windmill.glb',
                   position: { lat: position.lat, lng: position.lng, altitude: 0 },
                   orientation: { heading: 0, tilt: 270, roll: 90 },
-                  scale: 15,
+                  scale: 0.15,
                   altitudeMode: 'CLAMP_TO_GROUND',
                 });
 
