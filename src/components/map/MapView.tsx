@@ -224,6 +224,17 @@ export function MapView() {
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
+          // Debug: Listen for model load events
+          model.addEventListener('gmp-load', () => {
+            console.log('✅ Model LOADED successfully!');
+          });
+
+          model.addEventListener('gmp-error', (event: any) => {
+            console.error('❌ Model FAILED to load:', event);
+          });
+
+          console.log('📦 Model created, waiting for load...', model);
+
           // Add click listener to collect 47 points
           model.addEventListener('gmp-click', () => {
             console.log('🧍 Person collected! +47 points');
