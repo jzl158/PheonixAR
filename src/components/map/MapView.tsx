@@ -268,44 +268,51 @@ export function MapView() {
 
             // Reveal windmill in the same location after a brief delay
             setTimeout(async () => {
-              console.log('🎁 Revealing hidden windmill...');
+              try {
+                console.log('🎁 Revealing hidden windmill...');
 
-              const windmill = new Model3DInteractiveElement({
-                src: '/windmill.glb',
-                position: { lat: position.lat, lng: position.lng, altitude: 0 },
-                orientation: { heading: 0, tilt: 270, roll: 90 },
-                scale: 15,
-                altitudeMode: 'CLAMP_TO_GROUND',
-              });
+                // Re-import library for windmill creation
+                const { Model3DInteractiveElement: WindmillElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-              // Make windmill collectible too
-              windmill.addEventListener('gmp-click', () => {
-                console.log('🎨 Windmill collected! +100 points');
+                const windmill = new WindmillElement({
+                  src: '/windmill.glb',
+                  position: { lat: position.lat, lng: position.lng, altitude: 0 },
+                  orientation: { heading: 0, tilt: 270, roll: 90 },
+                  scale: 15,
+                  altitudeMode: 'CLAMP_TO_GROUND',
+                });
 
-                // Show collection animation
-                const windmillAnimId = `anim_${Date.now()}`;
-                setCollectionAnimations(prev => [...prev, {
-                  id: windmillAnimId,
-                  value: 100,
-                  x: window.innerWidth / 2,
-                  y: window.innerHeight / 2,
-                }]);
+                // Make windmill collectible too
+                windmill.addEventListener('gmp-click', () => {
+                  console.log('🎨 Windmill collected! +100 points');
 
-                setTimeout(() => {
-                  setCollectionAnimations(prev => prev.filter(a => a.id !== windmillAnimId));
-                }, 1000);
+                  // Show collection animation
+                  const windmillAnimId = `anim_${Date.now()}`;
+                  setCollectionAnimations(prev => [...prev, {
+                    id: windmillAnimId,
+                    value: 100,
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                  }]);
 
-                const { collectCoin } = useGameStore.getState();
-                collectCoin('windmill', 100);
+                  setTimeout(() => {
+                    setCollectionAnimations(prev => prev.filter(a => a.id !== windmillAnimId));
+                  }, 1000);
 
-                // Remove windmill
-                if (windmill.parentNode) {
-                  windmill.parentNode.removeChild(windmill);
-                }
-              });
+                  const { collectCoin } = useGameStore.getState();
+                  collectCoin('windmill', 100);
 
-              map3d.append(windmill);
-              console.log('✅ Windmill revealed!');
+                  // Remove windmill
+                  if (windmill.parentNode) {
+                    windmill.parentNode.removeChild(windmill);
+                  }
+                });
+
+                map3d.append(windmill);
+                console.log('✅ Windmill revealed and appended to map!');
+              } catch (error) {
+                console.error('❌ Error revealing windmill:', error);
+              }
             }, 500);
           });
 
