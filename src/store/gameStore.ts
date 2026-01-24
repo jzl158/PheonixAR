@@ -1,16 +1,20 @@
 import { create } from 'zustand';
-import type { GameState, Coin, Homebase } from '../types';
+import { persist } from 'zustand/middleware';
+import type { GameState, Coin, Homebase, Collectible } from '../types';
 
-export const useGameStore = create<GameState>((set) => ({
-  coins: [],
-  userCoins: 0,
-  collectedCoinIds: [],
-  homebases: [],
-  phoenixCoins: 0,
-  novaCoins: 0,
-  novaStreakDays: 0,
-  novaCollectionHistory: [],
-  phoenixCollectionHistory: [],
+export const useGameStore = create<GameState>()(
+  persist(
+    (set, get) => ({
+      coins: [],
+      userCoins: 0,
+      collectedCoinIds: [],
+      homebases: [],
+      phoenixCoins: 0,
+      novaCoins: 0,
+      novaStreakDays: 0,
+      novaCollectionHistory: [],
+      phoenixCollectionHistory: [],
+      collectibles: [],
 
   setCoins: (coins: Coin[]) => {
     set({ coins });
@@ -80,4 +84,58 @@ export const useGameStore = create<GameState>((set) => ({
       userCoins: state.userCoins + points,
     }));
   },
-}));
+
+  setCollectibles: (collectibles: Collectible[]) => {
+    set({ collectibles });
+  },
+
+  unlockCollectible: (collectibleId: string) => {
+    set((state) => ({
+      collectibles: state.collectibles.map(c =>
+        c.id === collectibleId
+          ? { ...c, state: 'unlocked' as const, unlockedAt: new Date() }
+          : c
+      ),
+    }));
+    console.log(`🔓 Unlocked collectible: ${collectibleId}`);
+  },
+
+  collectCollectible: (collectibleId: string, points: number) => {
+    const collectible = get().collectibles.find(c => c.id === collectibleId);
+
+    set((state) => ({
+      userCoins: state.userCoins + points,
+      collectibles: state.collectibles.map(c =>
+        c.id === collectibleId
+          ? { ...c, state: 'collected' as const, collectedAt: new Date() }
+          : c
+      ),
+    }));
+
+    console.log(`✅ Collected: ${collectibleId} (+${points} points)`);
+
+    // If this collectible unlocks another, unlock it now
+    if (collectible?.unlocksCollectible) {
+      get().unlockCollectible(collectible.unlocksCollectible);
+    }
+  },
+
+  getCollectibleState: (collectibleId: string) => {
+    const collectible = get().collectibles.find(c => c.id === collectibleId);
+    return collectible?.state || null;
+  },
+}),
+{
+  name: 'skylark-game-storage',
+  partialize: (state) => ({
+    userCoins: state.userCoins,
+    collectedCoinIds: state.collectedCoinIds,
+    phoenixCoins: state.phoenixCoins,
+    novaCoins: state.novaCoins,
+    novaStreakDays: state.novaStreakDays,
+    novaCollectionHistory: state.novaCollectionHistory,
+    phoenixCollectionHistory: state.phoenixCollectionHistory,
+    collectibles: state.collectibles,
+  }),
+}
+));

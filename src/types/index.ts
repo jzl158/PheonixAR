@@ -48,6 +48,23 @@ export interface Homebase {
   description?: string;
 }
 
+// Collectible Types
+export type CollectibleState = 'locked' | 'unlocked' | 'collected';
+
+export interface Collectible {
+  id: string;
+  type: string; // e.g., 'person0', 'windmill', 'treasure-chest'
+  position: Coordinates;
+  state: CollectibleState;
+  pointValue: number;
+  unlocksCollectible?: string; // ID of collectible this unlocks
+  modelSrc: string; // GLB file path
+  scale: number;
+  orientation: { heading: number; tilt: number; roll: number };
+  collectedAt?: Date;
+  unlockedAt?: Date;
+}
+
 export interface GameState {
   coins: Coin[];
   userCoins: number;
@@ -58,9 +75,14 @@ export interface GameState {
   novaStreakDays: number;
   novaCollectionHistory: Date[];
   phoenixCollectionHistory: Date[];
+  collectibles: Collectible[];
   setCoins: (coins: Coin[]) => void;
   collectCoin: (coinId: string, value: number) => void;
   addCoins: (coins: Coin[]) => void;
+  setCollectibles: (collectibles: Collectible[]) => void;
+  unlockCollectible: (collectibleId: string) => void;
+  collectCollectible: (collectibleId: string, points: number) => void;
+  getCollectibleState: (collectibleId: string) => CollectibleState | null;
   setHomebases: (homebases: Homebase[]) => void;
   addPhoenixCoin: () => void;
   addNovaCoin: () => void;

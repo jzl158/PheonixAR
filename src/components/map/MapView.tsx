@@ -4,6 +4,7 @@ import { useGeolocation } from '../../hooks/useGeolocation';
 // import { useSpecialCoins } from '../../hooks/useSpecialCoins';
 import { useGameStore } from '../../store/gameStore';
 import { getAllHomebases } from '../../data/homebases';
+import { getAllCollectibles } from '../../data/collectibles';
 // import { getAllGiftCards } from '../../data/giftCards';
 // import { getAllARExperiences } from '../../data/arExperiences';
 // import { getAllTerminusDAOStops } from '../../data/terminusDAO';
@@ -32,7 +33,7 @@ export function MapView() {
   const { position, isLoading, error, accuracy } = useGeolocation();
   // const { coins, attemptCollectCoin } = useCoins(position);
   // const { phoenixCoins, novaCoins, attemptCollectPhoenixCoin, attemptCollectNovaCoin } = useSpecialCoins(position);
-  const { setHomebases } = useGameStore();
+  const { setHomebases, collectibles, setCollectibles, collectCollectible, getCollectibleState } = useGameStore();
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [map, setMap] = useState<google.maps.Map | any>(null);
@@ -88,6 +89,19 @@ export function MapView() {
       alert('Failed to start AR. Please ensure camera permissions are granted.');
     }
   };
+
+  // Initialize collectibles with user's position
+  useEffect(() => {
+    if (!position || collectibles.length > 0) return;
+
+    const worldCollectibles = getAllCollectibles().map(c => ({
+      ...c,
+      position: { lat: position.lat, lng: position.lng }, // Place at user's location for demo
+    }));
+
+    setCollectibles(worldCollectibles);
+    console.log('🎁 Initialized collectibles:', worldCollectibles);
+  }, [position]);
 
   // State for all location types - commented out for now (using 3D objects instead)
   // const [giftCards, _setGiftCards] = useState(getAllGiftCards());
