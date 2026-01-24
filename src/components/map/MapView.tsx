@@ -219,8 +219,8 @@ export function MapView() {
           const model = new Model3DInteractiveElement({
             src: '/person0.glb', // Local file from public folder
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
-            orientation: { heading: 0, tilt: 270, roll: 90 },
-            scale: 0.15,
+            orientation: { heading: 0, tilt: 0, roll: 0 },
+            scale: 2.0,
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
@@ -255,7 +255,11 @@ export function MapView() {
           // Append model to map
           map3d.append(model);
 
-          console.log('✅ Custom 3D model added at user location');
+          console.log('✅ Person0 3D model added at user location:', {
+            position: { lat: position.lat, lng: position.lng },
+            scale: 2.0,
+            src: '/person0.glb'
+          });
         } catch (error) {
           console.error('❌ Error adding 3D model:', error);
         }
