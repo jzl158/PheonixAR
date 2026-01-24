@@ -277,14 +277,18 @@ export function MapView() {
   // Track user location marker refs
   const userMarkerRef = useRef<any>(null);
   const accuracyCircleRef = useRef<any>(null);
+  const markerInitializedRef = useRef(false);
 
-  // Create user location marker once
+  // Create user location marker once when we have both map and initial position
   useEffect(() => {
-    if (!map) return;
+    if (!map || !position || markerInitializedRef.current) return;
+
+    // Mark as initialized so we don't recreate
+    markerInitializedRef.current = true;
 
     // Handle 3D map markers differently
     if (map.tagName === 'GMP-MAP-3D') {
-      console.log('📍 Creating 3D user location marker...');
+      console.log('📍 Creating 3D user location marker at:', position);
 
       const createLocationMarker = async () => {
         const { Marker3DElement } = await window.google.maps.importLibrary('maps3d') as any;
@@ -299,6 +303,7 @@ export function MapView() {
         locationImg.style.boxShadow = '0 0 6px rgba(0,0,0,0.3)';
 
         const marker3d = new Marker3DElement({
+          position: { lat: position.lat, lng: position.lng },
           altitudeMode: 'CLAMP_TO_GROUND',
           extruded: true,
         });
@@ -310,79 +315,92 @@ export function MapView() {
         map.append(marker3d);
         userMarkerRef.current = marker3d;
 
-        console.log('✅ 3D user location marker created');
+        console.log('✅ 3D user location marker created and will track movement');
       };
 
       createLocationMarker();
+    } else {
+      console.log('📍 Creating 2D user location marker at:', position);
 
-      // Cleanup
-      return () => {
-        if (userMarkerRef.current && userMarkerRef.current.parentNode) {
-          userMarkerRef.current.parentNode.removeChild(userMarkerRef.current);
-        }
-        userMarkerRef.current = null;
-      };
-    }
+      // Create blue dot for user location (2D map)
+      const userMarker = new google.maps.Marker({
+        map: map,
+        position: { lat: position.lat, lng: position.lng },
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 8,
+          fillColor: '#4285F4',
+          fillOpacity: 1,
+          strokeColor: '#FFFFFF',
+          strokeWeight: 2,
+        },
+        title: 'Your Location',
+        zIndex: 1000,
+      });
 
-    console.log('📍 Creating user location marker');
-
-    // Create blue dot for user location (2D map)
-    const userMarker = new google.maps.Marker({
-      map: map,
-      icon: {
-        path: google.maps.SymbolPath.CIRCLE,
-        scale: 8,
+      // Create accuracy circle
+      const accuracyCircle = new google.maps.Circle({
+        map: map,
+        center: { lat: position.lat, lng: position.lng },
+        radius: accuracy || 50,
+        strokeColor: '#4285F4',
+        strokeOpacity: 0.2,
+        strokeWeight: 1,
         fillColor: '#4285F4',
-        fillOpacity: 1,
-        strokeColor: '#FFFFFF',
-        strokeWeight: 2,
-      },
-      title: 'Your Location',
-      zIndex: 1000,
-    });
+        fillOpacity: 0.1,
+        zIndex: 999,
+      });
 
-    // Create accuracy circle
-    const accuracyCircle = new google.maps.Circle({
-      map: map,
-      strokeColor: '#4285F4',
-      strokeOpacity: 0.2,
-      strokeWeight: 1,
-      fillColor: '#4285F4',
-      fillOpacity: 0.1,
-      zIndex: 999,
-    });
+      userMarkerRef.current = userMarker;
+      accuracyCircleRef.current = accuracyCircle;
 
-    userMarkerRef.current = userMarker;
-    accuracyCircleRef.current = accuracyCircle;
-
-    console.log('✅ User location marker created');
+      console.log('✅ 2D user location marker created and will track movement');
+    }
 
     // Cleanup
     return () => {
-      userMarker.setMap(null);
-      accuracyCircle.setMap(null);
+      if (userMarkerRef.current) {
+        if (map.tagName === 'GMP-MAP-3D') {
+          if (userMarkerRef.current.parentNode) {
+            userMarkerRef.current.parentNode.removeChild(userMarkerRef.current);
+          }
+        } else {
+          userMarkerRef.current.setMap(null);
+          if (accuracyCircleRef.current) {
+            accuracyCircleRef.current.setMap(null);
+          }
+        }
+      }
       userMarkerRef.current = null;
       accuracyCircleRef.current = null;
+      markerInitializedRef.current = false;
     };
-  }, [map]);
+  }, [map, position, accuracy]);
 
   // Update user location marker position when position changes
   useEffect(() => {
-    if (!userMarkerRef.current || !position) return;
+    if (!userMarkerRef.current || !position) {
+      console.log('⏸️ Position update skipped:', { hasMarker: !!userMarkerRef.current, hasPosition: !!position });
+      return;
+    }
 
     console.log('📍 Updating user location to:', position);
 
-    if (map.tagName === 'GMP-MAP-3D') {
+    if (map && map.tagName === 'GMP-MAP-3D') {
       // Update 3D marker position
+      const oldPos = userMarkerRef.current.position;
       userMarkerRef.current.position = { lat: position.lat, lng: position.lng };
-    } else {
+      console.log('✅ 3D marker updated from', oldPos, 'to', position);
+    } else if (userMarkerRef.current.setPosition) {
       // Update 2D marker position
       userMarkerRef.current.setPosition({ lat: position.lat, lng: position.lng });
+      console.log('✅ 2D marker position updated');
 
       // Update accuracy circle
       if (accuracyCircleRef.current && accuracy) {
         accuracyCircleRef.current.setCenter({ lat: position.lat, lng: position.lng });
         accuracyCircleRef.current.setRadius(accuracy);
+        console.log('✅ Accuracy circle updated:', accuracy + 'm');
       }
     }
   }, [position, accuracy, map]);

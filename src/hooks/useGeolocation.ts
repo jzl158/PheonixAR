@@ -28,10 +28,12 @@ export function useGeolocation() {
       setAccuracy(accuracyMeters);
 
       console.log('📍 GPS Update:', {
-        lat: coords.lat,
-        lng: coords.lng,
+        timestamp: new Date().toLocaleTimeString(),
+        lat: coords.lat.toFixed(6),
+        lng: coords.lng.toFixed(6),
         accuracy: accuracyMeters + 'm',
-        altitude: position.coords.altitude,
+        speed: position.coords.speed ? position.coords.speed + 'm/s' : 'N/A',
+        heading: position.coords.heading ? position.coords.heading + '°' : 'N/A',
       });
       setState({
         position: coords,
