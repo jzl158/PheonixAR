@@ -377,19 +377,19 @@ export function MapView() {
         try {
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          // Use tiny windmill as location marker (we know Model3DInteractiveElement works!)
+          // Use tiny Nova2 as location marker (clamped to ground, moveable via GPS)
           const locationMarker = new Model3DInteractiveElement({
-            src: '/windmill.glb',
+            src: '/Nova2.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
-            scale: 0.05, // Super tiny - just visible as a dot
+            scale: 0.05, // Super tiny since Nova2 is a larger file
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
           map.append(locationMarker);
           userMarkerRef.current = locationMarker;
 
-          console.log('✅ 3D location marker created (Model3D windmill at 0.05 scale)');
+          console.log('✅ 3D location marker created (Model3D Nova2 at 0.05 scale)');
         } catch (error) {
           console.error('❌ Failed to create location marker:', error);
         }
