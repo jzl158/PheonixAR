@@ -230,9 +230,9 @@ export function MapView() {
           // Import Model3DInteractiveElement
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          // Mario brick collectible
-          const modelSrc = '/mariobrick.glb';
-          console.log('🎯 Loading mariobrick with scale 5');
+          // Placemarker collectible
+          const modelSrc = '/placemarker.glb';
+          console.log('🎯 Loading placemarker with scale 5');
 
           // Create 3D model at user's location using local GLB file
           const model = new Model3DInteractiveElement({
@@ -256,7 +256,7 @@ export function MapView() {
 
           // Add click listener to collect 47 points and reveal gems
           model.addEventListener('gmp-click', async () => {
-            console.log('🧱 Mario brick collected! +47 points - Unlocking hidden gems...');
+            console.log('📍 Placemarker collected! +47 points - Unlocking hidden gems...');
 
             // Show collection animation at center of screen
             const animId = `anim_${Date.now()}`;
@@ -274,9 +274,9 @@ export function MapView() {
 
             // Add 47 points to user's balance
             const { collectCoin } = useGameStore.getState();
-            collectCoin('mariobrick', 47);
+            collectCoin('placemarker', 47);
 
-            // Remove the mario brick from the map
+            // Remove the placemarker from the map
             if (model.parentNode) {
               model.parentNode.removeChild(model);
             }
@@ -334,10 +334,10 @@ export function MapView() {
           // Append model to map
           map3d.append(model);
 
-          console.log('✅ Mario brick 3D model added at user location:', {
+          console.log('✅ Placemarker 3D model added at user location:', {
             position: { lat: position.lat, lng: position.lng },
             scale: 5,
-            src: '/mariobrick.glb'
+            src: '/placemarker.glb'
           });
         } catch (error) {
           console.error('❌ Error adding 3D model:', error);
@@ -377,11 +377,11 @@ export function MapView() {
         try {
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          console.log('🔧 Creating location marker - Using placemarker');
+          console.log('🔧 Creating location marker - Using mariobrick');
 
-          // Use placemarker as location marker (1.0MB)
+          // Use mariobrick as location marker (261KB)
           const locationMarker = new Model3DInteractiveElement({
-            src: '/placemarker.glb',
+            src: '/mariobrick.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
             scale: 1.0, // Starting with scale 1.0, will adjust if needed
@@ -390,7 +390,7 @@ export function MapView() {
 
           // Add load listener
           locationMarker.addEventListener('gmp-load', () => {
-            console.log('✅ Placemarker location marker loaded successfully');
+            console.log('✅ Mariobrick location marker loaded successfully');
           });
 
           // Add error listener to catch loading failures
