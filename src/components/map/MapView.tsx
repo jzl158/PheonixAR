@@ -230,16 +230,16 @@ export function MapView() {
           // Import Model3DInteractiveElement
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          // Person0 with large scale
-          const modelSrc = '/person0.glb';
-          console.log('🎯 Loading person0 with LARGE scale (15)');
+          // Mario brick collectible
+          const modelSrc = '/mariobrick.glb';
+          console.log('🎯 Loading mariobrick with scale 5');
 
           // Create 3D model at user's location using local GLB file
           const model = new Model3DInteractiveElement({
             src: modelSrc,
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
-            scale: 15,
+            scale: 5, // Starting with scale 5, will adjust if needed
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
@@ -254,9 +254,9 @@ export function MapView() {
 
           console.log('📦 Model created, waiting for load...', model);
 
-          // Add click listener to collect 47 points and reveal windmill
+          // Add click listener to collect 47 points and reveal gems
           model.addEventListener('gmp-click', async () => {
-            console.log('🧍 Person collected! +47 points - Unlocking hidden item...');
+            console.log('🧱 Mario brick collected! +47 points - Unlocking hidden gems...');
 
             // Show collection animation at center of screen
             const animId = `anim_${Date.now()}`;
@@ -274,59 +274,59 @@ export function MapView() {
 
             // Add 47 points to user's balance
             const { collectCoin } = useGameStore.getState();
-            collectCoin('person0', 47);
+            collectCoin('mariobrick', 47);
 
-            // Remove the person from the map
+            // Remove the mario brick from the map
             if (model.parentNode) {
               model.parentNode.removeChild(model);
             }
 
-            // Reveal windmill in the same location after a brief delay
+            // Reveal gems in the same location after a brief delay
             setTimeout(async () => {
               try {
-                console.log('🎁 Revealing hidden windmill...');
+                console.log('🎁 Revealing hidden gems...');
 
-                // Re-import library for windmill creation
-                const { Model3DInteractiveElement: WindmillElement } = await window.google.maps.importLibrary('maps3d') as any;
+                // Re-import library for gems creation
+                const { Model3DInteractiveElement: GemsElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-                const windmill = new WindmillElement({
-                  src: '/windmill.glb',
+                const gems = new GemsElement({
+                  src: '/gems.glb',
                   position: { lat: position.lat, lng: position.lng, altitude: 0 },
-                  orientation: { heading: 0, tilt: 270, roll: 90 },
-                  scale: 0.15,
+                  orientation: { heading: 0, tilt: 0, roll: 0 },
+                  scale: 5, // Starting with scale 5, will adjust if needed
                   altitudeMode: 'CLAMP_TO_GROUND',
                 });
 
-                // Make windmill collectible too
-                windmill.addEventListener('gmp-click', () => {
-                  console.log('🎨 Windmill collected! +100 points');
+                // Make gems collectible too
+                gems.addEventListener('gmp-click', () => {
+                  console.log('💎 Gems collected! +100 points');
 
                   // Show collection animation
-                  const windmillAnimId = `anim_${Date.now()}`;
+                  const gemsAnimId = `anim_${Date.now()}`;
                   setCollectionAnimations(prev => [...prev, {
-                    id: windmillAnimId,
+                    id: gemsAnimId,
                     value: 100,
                     x: window.innerWidth / 2,
                     y: window.innerHeight / 2,
                   }]);
 
                   setTimeout(() => {
-                    setCollectionAnimations(prev => prev.filter(a => a.id !== windmillAnimId));
+                    setCollectionAnimations(prev => prev.filter(a => a.id !== gemsAnimId));
                   }, 1000);
 
                   const { collectCoin } = useGameStore.getState();
-                  collectCoin('windmill', 100);
+                  collectCoin('gems', 100);
 
-                  // Remove windmill
-                  if (windmill.parentNode) {
-                    windmill.parentNode.removeChild(windmill);
+                  // Remove gems
+                  if (gems.parentNode) {
+                    gems.parentNode.removeChild(gems);
                   }
                 });
 
-                map3d.append(windmill);
-                console.log('✅ Windmill revealed and appended to map!');
+                map3d.append(gems);
+                console.log('✅ Gems revealed and appended to map!');
               } catch (error) {
-                console.error('❌ Error revealing windmill:', error);
+                console.error('❌ Error revealing gems:', error);
               }
             }, 500);
           });
@@ -334,10 +334,10 @@ export function MapView() {
           // Append model to map
           map3d.append(model);
 
-          console.log('✅ Person0 3D model added at user location:', {
+          console.log('✅ Mario brick 3D model added at user location:', {
             position: { lat: position.lat, lng: position.lng },
-            scale: 15,
-            src: '/person0.glb'
+            scale: 5,
+            src: '/mariobrick.glb'
           });
         } catch (error) {
           console.error('❌ Error adding 3D model:', error);
@@ -377,20 +377,20 @@ export function MapView() {
         try {
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          console.log('🔧 Creating location marker - Using windmill (proven to work)');
+          console.log('🔧 Creating location marker - Using placemarker');
 
-          // Use tiny windmill as location marker (we know this works!)
+          // Use placemarker as location marker (1.0MB)
           const locationMarker = new Model3DInteractiveElement({
-            src: '/windmill.glb',
+            src: '/placemarker.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
-            scale: 0.05, // Small blue dot effect
+            scale: 1.0, // Starting with scale 1.0, will adjust if needed
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
           // Add load listener
           locationMarker.addEventListener('gmp-load', () => {
-            console.log('✅ Windmill location marker loaded successfully');
+            console.log('✅ Placemarker location marker loaded successfully');
           });
 
           // Add error listener to catch loading failures
