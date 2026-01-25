@@ -368,22 +368,33 @@ export function MapView() {
     // Mark as initialized so we don't recreate
     markerInitializedRef.current = true;
 
-    // Handle 3D map markers differently - Use simple web component approach
+    // Handle 3D map markers - Use Model3DInteractiveElement (proven to work!)
     if (map.tagName === 'GMP-MAP-3D') {
-      console.log('📍 Creating 3D user location marker (web component) at:', position);
+      console.log('📍 Creating 3D user location marker using Model3D at:', position);
 
-      // Use gmp-marker-3d web component directly - simpler and proven to work
-      const marker3d = document.createElement('gmp-marker-3d');
-      marker3d.setAttribute('position', `${position.lat},${position.lng}`);
-      marker3d.setAttribute('altitude-mode', 'CLAMP_TO_GROUND');
-      marker3d.setAttribute('label', '📍'); // Blue location pin emoji
-      marker3d.setAttribute('extruded', 'true');
+      const createLocationMarker = async () => {
+        try {
+          const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-      map.append(marker3d);
-      userMarkerRef.current = marker3d;
+          // Use tiny windmill as location marker (we know Model3DInteractiveElement works!)
+          const locationMarker = new Model3DInteractiveElement({
+            src: '/windmill.glb',
+            position: { lat: position.lat, lng: position.lng, altitude: 0 },
+            orientation: { heading: 0, tilt: 0, roll: 0 },
+            scale: 0.05, // Super tiny - just visible as a dot
+            altitudeMode: 'CLAMP_TO_GROUND',
+          });
 
-      console.log('✅ 3D user location marker created (web component)');
-      console.log('✅ Marker element:', marker3d);
+          map.append(locationMarker);
+          userMarkerRef.current = locationMarker;
+
+          console.log('✅ 3D location marker created (Model3D windmill at 0.05 scale)');
+        } catch (error) {
+          console.error('❌ Failed to create location marker:', error);
+        }
+      };
+
+      createLocationMarker();
     } else {
       console.log('📍 Creating 2D user location marker at:', position);
 
@@ -449,14 +460,13 @@ export function MapView() {
       return;
     }
 
-    const posStr = `${position.lat},${position.lng}`;
-    console.log('📍 Updating user location to:', posStr);
+    console.log('📍 Updating user location to:', { lat: position.lat.toFixed(6), lng: position.lng.toFixed(6) });
 
     if (map && map.tagName === 'GMP-MAP-3D') {
-      // For 3D web component markers: use setAttribute
+      // For Model3DInteractiveElement: direct position assignment works!
       try {
-        userMarkerRef.current.setAttribute('position', posStr);
-        console.log('✅ 3D marker position updated:', posStr);
+        userMarkerRef.current.position = { lat: position.lat, lng: position.lng };
+        console.log('✅ 3D marker position updated (Model3D)');
       } catch (error) {
         console.error('❌ Failed to update 3D marker:', error);
       }
