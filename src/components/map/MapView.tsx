@@ -452,7 +452,7 @@ export function MapView() {
           const locationMarker = new Model3DInteractiveElement({
             src: '/pawn.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
-            orientation: { heading: 0, tilt: 0, roll: 0 },
+            orientation: { heading: 0, tilt: 270, roll: 0 }, // Rotate to stand on base
             scale: 10, // Starting with scale 10
             altitudeMode: 'CLAMP_TO_GROUND',
           });
