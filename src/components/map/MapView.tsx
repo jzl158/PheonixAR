@@ -377,20 +377,20 @@ export function MapView() {
         try {
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          console.log('🔧 Creating location marker - Using mariobrick');
+          console.log('🔧 Creating location marker - Using Placemarker2 at 100x scale');
 
-          // Use mariobrick as location marker (261KB)
+          // Use Placemarker2 as location marker at 100x scale (291KB)
           const locationMarker = new Model3DInteractiveElement({
-            src: '/mariobrick.glb',
+            src: '/Placemarker2.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
-            scale: 5,
+            scale: 100, // 100 times bigger
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
           // Add load listener
           locationMarker.addEventListener('gmp-load', () => {
-            console.log('✅ Mariobrick location marker loaded successfully');
+            console.log('✅ Placemarker2 location marker loaded successfully at scale 100');
           });
 
           // Add error listener to catch loading failures
