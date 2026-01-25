@@ -377,11 +377,11 @@ export function MapView() {
         try {
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          console.log('🔧 Creating Nova2 marker - File size: 20MB');
+          console.log('🔧 Creating Nova2 marker - File size: 1.5MB (optimized)');
 
-          // Use Nova2 as location marker - trying person0-level scale
+          // Use optimized Nova2 as location marker
           const locationMarker = new Model3DInteractiveElement({
-            src: '/Nova2.glb',
+            src: '/Nova2_optimized.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
             scale: 15, // Same as person0 - testing if it's just too small
