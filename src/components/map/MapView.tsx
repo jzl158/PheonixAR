@@ -453,13 +453,13 @@ export function MapView() {
             src: '/pawn.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 270, roll: 0 }, // Rotate to stand on base
-            scale: 10, // Starting with scale 10
+            scale: 1.0, // Reduced by 10x (was 10, now 1.0)
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
           // Add load listener
           locationMarker.addEventListener('gmp-load', () => {
-            console.log('✅ Pawn location marker loaded successfully at scale 10');
+            console.log('✅ Pawn location marker loaded successfully at scale 1.0');
           });
 
           // Add error listener
