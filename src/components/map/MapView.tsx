@@ -379,18 +379,18 @@ export function MapView() {
 
           console.log('🔧 Creating Nova2 marker - File size: 20MB');
 
-          // Use Nova2 as location marker (clamped to ground, moveable via GPS)
+          // Use Nova2 as location marker - trying much larger scale
           const locationMarker = new Model3DInteractiveElement({
             src: '/Nova2.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
-            scale: 0.1, // Increased from 0.05 to make more visible
+            scale: 2.0, // Significantly increased - testing visibility
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
           // Add load listener to see when model loads successfully
           locationMarker.addEventListener('gmp-load', () => {
-            console.log('✅ Nova2 location marker LOADED successfully at scale 0.1');
+            console.log('✅ Nova2 location marker LOADED successfully at scale 2.0');
           });
 
           // Add error listener to catch loading failures
@@ -403,6 +403,15 @@ export function MapView() {
           userMarkerRef.current = locationMarker;
 
           console.log('📦 Nova2 location marker created, waiting for load...');
+
+          // Check if model is in DOM after 2 seconds
+          setTimeout(() => {
+            const isInDom = map.contains(locationMarker);
+            console.log('🔍 Nova2 marker in DOM after 2s?', isInDom);
+            console.log('🔍 Nova2 marker element:', locationMarker);
+            console.log('🔍 Nova2 marker position:', locationMarker.position);
+            console.log('🔍 Nova2 marker scale:', locationMarker.scale);
+          }, 2000);
         } catch (error) {
           console.error('❌ Failed to create location marker:', error);
         }
