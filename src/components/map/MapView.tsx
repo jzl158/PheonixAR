@@ -33,7 +33,8 @@ export function MapView() {
   const { position, isLoading, error, accuracy } = useGeolocation();
   // const { coins, attemptCollectCoin } = useCoins(position);
   // const { phoenixCoins, novaCoins, attemptCollectPhoenixCoin, attemptCollectNovaCoin } = useSpecialCoins(position);
-  const { setHomebases, collectibles, setCollectibles, collectCollectible, getCollectibleState } = useGameStore();
+  const { setHomebases, collectibles, setCollectibles } = useGameStore();
+  // const { collectCollectible, getCollectibleState } = useGameStore(); // Will use these when migrating to state system
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [map, setMap] = useState<google.maps.Map | any>(null);
