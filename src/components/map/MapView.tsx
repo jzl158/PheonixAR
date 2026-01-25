@@ -346,6 +346,75 @@ export function MapView() {
 
       add3DModel();
 
+      // Add 5 coins randomly around the player
+      const addCoins = async () => {
+        try {
+          console.log('💰 Spawning 5 coins around player...');
+
+          // Wait for map to fully initialize
+          await new Promise(resolve => setTimeout(resolve, 3500));
+
+          const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
+
+          // Generate 5 random positions within ~50 meters of player
+          for (let i = 0; i < 5; i++) {
+            // Random offset in degrees (roughly 50m = 0.0005 degrees)
+            const latOffset = (Math.random() - 0.5) * 0.001;
+            const lngOffset = (Math.random() - 0.5) * 0.001;
+
+            const coinPosition = {
+              lat: position.lat + latOffset,
+              lng: position.lng + lngOffset,
+              altitude: 0
+            };
+
+            const coin = new Model3DInteractiveElement({
+              src: '/coin.glb',
+              position: coinPosition,
+              orientation: { heading: 0, tilt: 0, roll: 0 },
+              scale: 3,
+              altitudeMode: 'CLAMP_TO_GROUND',
+            });
+
+            // Make coin collectible
+            coin.addEventListener('gmp-click', () => {
+              console.log(`💰 Coin ${i + 1} collected! +10 points`);
+
+              // Show collection animation
+              const coinAnimId = `coin_${Date.now()}`;
+              setCollectionAnimations(prev => [...prev, {
+                id: coinAnimId,
+                value: 10,
+                x: window.innerWidth / 2,
+                y: window.innerHeight / 2,
+              }]);
+
+              setTimeout(() => {
+                setCollectionAnimations(prev => prev.filter(a => a.id !== coinAnimId));
+              }, 1000);
+
+              // Add points
+              const { collectCoin } = useGameStore.getState();
+              collectCoin(`coin_${i}`, 10);
+
+              // Remove coin
+              if (coin.parentNode) {
+                coin.parentNode.removeChild(coin);
+              }
+            });
+
+            map3d.append(coin);
+            console.log(`✅ Coin ${i + 1} placed at:`, coinPosition);
+          }
+
+          console.log('✅ All 5 coins spawned successfully');
+        } catch (error) {
+          console.error('❌ Error spawning coins:', error);
+        }
+      };
+
+      addCoins();
+
       // Set map state so UI knows map is ready
       setMap(map3d as any);
       setMapInitialized(true); // Mark as initialized so we don't reset center on position updates
