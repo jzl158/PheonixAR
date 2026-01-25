@@ -336,7 +336,7 @@ export function MapView() {
 
           console.log('✅ Person0 3D model added at user location:', {
             position: { lat: position.lat, lng: position.lng },
-            scale: 2.0,
+            scale: 15,
             src: '/person0.glb'
           });
         } catch (error) {
@@ -384,13 +384,13 @@ export function MapView() {
             src: '/Nova2_optimized.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
-            scale: 15, // Same as person0 - testing if it's just too small
+            scale: 20, // Increased to 20x for visibility
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
           // Add load listener to see when model loads successfully
           locationMarker.addEventListener('gmp-load', () => {
-            console.log('✅ Nova2 location marker LOADED successfully at scale 15');
+            console.log('✅ Nova2 location marker LOADED successfully at scale 20');
           });
 
           // Add error listener to catch loading failures
