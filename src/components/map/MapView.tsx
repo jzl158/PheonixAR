@@ -373,31 +373,36 @@ export function MapView() {
       console.log('📍 Creating 3D user location marker at:', position);
 
       const createLocationMarker = async () => {
-        const { Marker3DElement } = await window.google.maps.importLibrary('maps3d') as any;
+        try {
+          const { Marker3DElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-        // Create blue dot marker for user location
-        const locationImg = document.createElement('div');
-        locationImg.style.width = '20px';
-        locationImg.style.height = '20px';
-        locationImg.style.borderRadius = '50%';
-        locationImg.style.backgroundColor = '#4285F4';
-        locationImg.style.border = '3px solid white';
-        locationImg.style.boxShadow = '0 0 6px rgba(0,0,0,0.3)';
+          // Create blue dot marker for user location
+          const locationImg = document.createElement('div');
+          locationImg.style.width = '20px';
+          locationImg.style.height = '20px';
+          locationImg.style.borderRadius = '50%';
+          locationImg.style.backgroundColor = '#4285F4';
+          locationImg.style.border = '3px solid white';
+          locationImg.style.boxShadow = '0 0 6px rgba(0,0,0,0.3)';
 
-        const marker3d = new Marker3DElement({
-          position: { lat: position.lat, lng: position.lng },
-          altitudeMode: 'CLAMP_TO_GROUND',
-          extruded: true,
-        });
+          const marker3d = new Marker3DElement({
+            position: { lat: position.lat, lng: position.lng },
+            altitudeMode: 'CLAMP_TO_GROUND',
+            extruded: true,
+          });
 
-        const template = document.createElement('template');
-        template.content.append(locationImg);
-        marker3d.append(template);
+          const template = document.createElement('template');
+          template.content.append(locationImg);
+          marker3d.append(template);
 
-        map.append(marker3d);
-        userMarkerRef.current = marker3d;
+          map.append(marker3d);
+          userMarkerRef.current = marker3d;
 
-        console.log('✅ 3D user location marker created and will track movement');
+          console.log('✅ 3D user location marker created and ready for tracking');
+          console.log('✅ Marker methods available:', Object.getOwnPropertyNames(Object.getPrototypeOf(marker3d)));
+        } catch (error) {
+          console.error('❌ Failed to create 3D marker:', error);
+        }
       };
 
       createLocationMarker();
@@ -466,13 +471,26 @@ export function MapView() {
       return;
     }
 
-    console.log('📍 Updating user location to:', position);
+    console.log('📍 Updating user location to:', { lat: position.lat.toFixed(6), lng: position.lng.toFixed(6) });
 
     if (map && map.tagName === 'GMP-MAP-3D') {
-      // Update 3D marker position
-      const oldPos = userMarkerRef.current.position;
-      userMarkerRef.current.position = { lat: position.lat, lng: position.lng };
-      console.log('✅ 3D marker updated from', oldPos, 'to', position);
+      // For 3D markers: Try setAttribute method (web component API)
+      try {
+        const marker = userMarkerRef.current;
+        const posStr = `${position.lat},${position.lng}`;
+
+        // Try setAttribute (web component standard)
+        if (marker.setAttribute) {
+          marker.setAttribute('position', posStr);
+          console.log('✅ 3D marker position updated via setAttribute:', posStr);
+        } else {
+          // Fallback: Try direct assignment
+          marker.position = { lat: position.lat, lng: position.lng };
+          console.log('✅ 3D marker position updated via direct assignment');
+        }
+      } catch (error) {
+        console.error('❌ Failed to update 3D marker:', error);
+      }
     } else if (userMarkerRef.current.setPosition) {
       // Update 2D marker position
       userMarkerRef.current.setPosition({ lat: position.lat, lng: position.lng });
