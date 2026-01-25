@@ -379,13 +379,13 @@ export function MapView() {
 
           console.log('🔧 Creating Nova2 marker - File size: 1.5MB (optimized)');
 
-          // Use optimized Nova2 as location marker
+          // Use optimized Nova2 as location marker with elevated altitude
           const locationMarker = new Model3DInteractiveElement({
             src: '/Nova2_optimized.glb',
-            position: { lat: position.lat, lng: position.lng, altitude: 0 },
+            position: { lat: position.lat, lng: position.lng, altitude: 50 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
             scale: 20, // Increased to 20x for visibility
-            altitudeMode: 'CLAMP_TO_GROUND',
+            altitudeMode: 'RELATIVE_TO_GROUND', // Changed from CLAMP_TO_GROUND to allow elevation
           });
 
           // Add load listener to see when model loads successfully
@@ -488,8 +488,8 @@ export function MapView() {
     if (map && map.tagName === 'GMP-MAP-3D') {
       // For Model3DInteractiveElement: direct position assignment works!
       try {
-        userMarkerRef.current.position = { lat: position.lat, lng: position.lng };
-        console.log('✅ 3D marker position updated (Model3D)');
+        userMarkerRef.current.position = { lat: position.lat, lng: position.lng, altitude: 50 };
+        console.log('✅ 3D marker position updated (Model3D) at 50m elevation');
       } catch (error) {
         console.error('❌ Failed to update 3D marker:', error);
       }
