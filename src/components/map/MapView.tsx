@@ -384,7 +384,7 @@ export function MapView() {
             src: '/Placemarker2.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
-            scale: 1.0, // Starting with scale 1.0, will adjust if needed
+            scale: 5, // Same size as mariobrick for visibility
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
