@@ -377,20 +377,20 @@ export function MapView() {
         try {
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          console.log('🔧 Creating Nova2 marker - Testing ORIGINAL file at small scale');
+          console.log('🔧 Creating location marker - Using windmill (proven to work)');
 
-          // Use ORIGINAL Nova2 at very small scale - testing if compression broke it
+          // Use tiny windmill as location marker (we know this works!)
           const locationMarker = new Model3DInteractiveElement({
-            src: '/Nova2.glb',
-            position: { lat: position.lat, lng: position.lng, altitude: 50 },
+            src: '/windmill.glb',
+            position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
-            scale: 0.2, // Very small scale to compensate for 20MB file
-            altitudeMode: 'RELATIVE_TO_GROUND',
+            scale: 0.05, // Small blue dot effect
+            altitudeMode: 'CLAMP_TO_GROUND',
           });
 
-          // Add load listener to see when model loads successfully
+          // Add load listener
           locationMarker.addEventListener('gmp-load', () => {
-            console.log('✅ ORIGINAL Nova2 location marker LOADED successfully at scale 0.2');
+            console.log('✅ Windmill location marker loaded successfully');
           });
 
           // Add error listener to catch loading failures
@@ -488,8 +488,8 @@ export function MapView() {
     if (map && map.tagName === 'GMP-MAP-3D') {
       // For Model3DInteractiveElement: direct position assignment works!
       try {
-        userMarkerRef.current.position = { lat: position.lat, lng: position.lng, altitude: 50 };
-        console.log('✅ 3D marker position updated (Model3D) at 50m elevation');
+        userMarkerRef.current.position = { lat: position.lat, lng: position.lng };
+        console.log('✅ 3D marker position updated (Model3D)');
       } catch (error) {
         console.error('❌ Failed to update 3D marker:', error);
       }
