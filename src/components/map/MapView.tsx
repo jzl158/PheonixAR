@@ -446,20 +446,25 @@ export function MapView() {
         try {
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          console.log('🔧 Creating location marker - Using Placemarker2 at 100x scale');
+          console.log('🔧 Creating location marker - Using pawn.glb');
 
-          // Use Placemarker2 as location marker at 100x scale (291KB)
+          // Use pawn as location marker (53KB - small and should work!)
           const locationMarker = new Model3DInteractiveElement({
-            src: '/Placemarker2.glb',
+            src: '/pawn.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 0, roll: 0 },
-            scale: 100, // 100 times bigger
+            scale: 10, // Starting with scale 10
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
           // Add load listener
           locationMarker.addEventListener('gmp-load', () => {
-            console.log('✅ Placemarker2 location marker loaded successfully at scale 100');
+            console.log('✅ Pawn location marker loaded successfully at scale 10');
+          });
+
+          // Add error listener
+          locationMarker.addEventListener('gmp-error', (event: any) => {
+            console.error('❌ Pawn location marker FAILED to load:', event);
           });
 
           // Add error listener to catch loading failures
