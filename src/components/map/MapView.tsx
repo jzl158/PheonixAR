@@ -446,11 +446,11 @@ export function MapView() {
         try {
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          console.log('🔧 Creating location marker - Using pawnresize.glb');
+          console.log('🔧 Creating location marker - Using pawn2.glb');
 
-          // Use resized pawn as location marker (56KB)
+          // Use pawn2 as location marker (56KB)
           const locationMarker = new Model3DInteractiveElement({
-            src: '/pawnresize.glb',
+            src: '/pawn2.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 270, roll: 0 }, // Rotate to stand on base
             scale: 4.0, // Scaled up by 4x
@@ -459,7 +459,7 @@ export function MapView() {
 
           // Add load listener
           locationMarker.addEventListener('gmp-load', () => {
-            console.log('✅ Pawn location marker loaded successfully at scale 1.0');
+            console.log('✅ Pawn2 location marker loaded successfully at scale 4.0');
           });
 
           // Add error listener
