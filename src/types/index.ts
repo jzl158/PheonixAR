@@ -76,6 +76,7 @@ export interface GameState {
   novaCollectionHistory: Date[];
   phoenixCollectionHistory: Date[];
   collectibles: Collectible[];
+  gemsCollected: number;
   setCoins: (coins: Coin[]) => void;
   collectCoin: (coinId: string, value: number) => void;
   addCoins: (coins: Coin[]) => void;
@@ -87,6 +88,7 @@ export interface GameState {
   addPhoenixCoin: () => void;
   addNovaCoin: () => void;
   addPoints: (points: number) => void;
+  addGem: () => void;
 }
 
 // Map Types

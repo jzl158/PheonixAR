@@ -15,6 +15,7 @@ export const useGameStore = create<GameState>()(
       novaCollectionHistory: [],
       phoenixCollectionHistory: [],
       collectibles: [],
+      gemsCollected: 0,
 
   setCoins: (coins: Coin[]) => {
     set({ coins });
@@ -124,6 +125,13 @@ export const useGameStore = create<GameState>()(
     const collectible = get().collectibles.find(c => c.id === collectibleId);
     return collectible?.state || null;
   },
+
+  addGem: () => {
+    set((state) => ({
+      gemsCollected: state.gemsCollected + 1,
+    }));
+    console.log('💎 Gems Collected');
+  },
 }),
 {
   name: 'skylark-game-storage',
@@ -136,6 +144,7 @@ export const useGameStore = create<GameState>()(
     novaCollectionHistory: state.novaCollectionHistory,
     phoenixCollectionHistory: state.phoenixCollectionHistory,
     collectibles: state.collectibles,
+    gemsCollected: state.gemsCollected,
   }),
 }
 ));

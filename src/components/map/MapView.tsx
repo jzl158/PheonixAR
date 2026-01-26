@@ -15,6 +15,7 @@ import { ProfilePage } from '../profile/ProfilePage';
 import { PhoenixOffersCards } from '../offers/PhoenixOffersCards';
 import { NotificationPanel } from '../notifications/NotificationPanel';
 import { Leaderboard } from '../leaderboard/Leaderboard';
+import { QuizModal } from '../quiz/QuizModal';
 
 // Declare Google Maps, 3D Maps, and 8th Wall types
 declare global {
@@ -47,6 +48,11 @@ export function MapView() {
 
   // Collection animation state
   const [collectionAnimations, setCollectionAnimations] = useState<{ id: string; value: number; x: number; y: number }[]>([]);
+
+  // Quiz modal state for Mario brick
+  const [showQuizModal, setShowQuizModal] = useState(false);
+  const [brickModel, setBrickModel] = useState<any>(null);
+  const [brickPosition, setBrickPosition] = useState<{ lat: number; lng: number } | null>(null);
 
   // Load 8th Wall AR script
   useEffect(() => {
@@ -88,6 +94,60 @@ export function MapView() {
     } catch (e) {
       console.error('❌ Failed to start AR:', e);
       alert('Failed to start AR. Please ensure camera permissions are granted.');
+    }
+  };
+
+  // Handle correct quiz answer - remove brick and reveal gems
+  const handleQuizCorrectAnswer = async () => {
+    console.log('✅ Quiz answered correctly! Removing brick and revealing gems...');
+
+    // Remove the mario brick from the map
+    if (brickModel && brickModel.parentNode) {
+      brickModel.parentNode.removeChild(brickModel);
+    }
+
+    // Reveal gems at the brick's location
+    if (brickPosition && map) {
+      try {
+        console.log('🎁 Revealing hidden gems...');
+
+        // Get the map3d element
+        const map3d = document.querySelector('gmp-map-3d');
+        if (!map3d) {
+          console.error('❌ Map3D element not found');
+          return;
+        }
+
+        // Import 3D library for gems
+        const { Model3DInteractiveElement: GemsElement } = await window.google.maps.importLibrary('maps3d') as any;
+
+        const gems = new GemsElement({
+          src: '/gems.glb',
+          position: { lat: brickPosition.lat, lng: brickPosition.lng, altitude: 0 },
+          orientation: { heading: 0, tilt: 0, roll: 0 },
+          scale: 5,
+          altitudeMode: 'CLAMP_TO_GROUND',
+        });
+
+        // Make gems collectible
+        gems.addEventListener('gmp-click', () => {
+          console.log('💎 Gems collected!');
+
+          // Add gem to inventory
+          const { addGem } = useGameStore.getState();
+          addGem();
+
+          // Remove gems
+          if (gems.parentNode) {
+            gems.parentNode.removeChild(gems);
+          }
+        });
+
+        map3d.append(gems);
+        console.log('✅ Gems revealed and appended to map!');
+      } catch (error) {
+        console.error('❌ Error revealing gems:', error);
+      }
     }
   };
 
@@ -254,81 +314,14 @@ export function MapView() {
 
           console.log('📦 Model created, waiting for load...', model);
 
-          // Add click listener to collect 47 points and reveal gems
-          model.addEventListener('gmp-click', async () => {
-            console.log('🧱 Mario brick collected! +47 points - Unlocking hidden gems...');
+          // Store brick model and position for quiz modal
+          setBrickModel(model);
+          setBrickPosition({ lat: position.lat, lng: position.lng });
 
-            // Show collection animation at center of screen
-            const animId = `anim_${Date.now()}`;
-            setCollectionAnimations(prev => [...prev, {
-              id: animId,
-              value: 47,
-              x: window.innerWidth / 2,
-              y: window.innerHeight / 2,
-            }]);
-
-            // Remove animation after 1 second
-            setTimeout(() => {
-              setCollectionAnimations(prev => prev.filter(a => a.id !== animId));
-            }, 1000);
-
-            // Add 47 points to user's balance
-            const { collectCoin } = useGameStore.getState();
-            collectCoin('mariobrick', 47);
-
-            // Remove the mario brick from the map
-            if (model.parentNode) {
-              model.parentNode.removeChild(model);
-            }
-
-            // Reveal gems in the same location after a brief delay
-            setTimeout(async () => {
-              try {
-                console.log('🎁 Revealing hidden gems...');
-
-                // Re-import library for gems creation
-                const { Model3DInteractiveElement: GemsElement } = await window.google.maps.importLibrary('maps3d') as any;
-
-                const gems = new GemsElement({
-                  src: '/gems.glb',
-                  position: { lat: position.lat, lng: position.lng, altitude: 0 },
-                  orientation: { heading: 0, tilt: 0, roll: 0 },
-                  scale: 5, // Starting with scale 5, will adjust if needed
-                  altitudeMode: 'CLAMP_TO_GROUND',
-                });
-
-                // Make gems collectible too
-                gems.addEventListener('gmp-click', () => {
-                  console.log('💎 Gems collected! +100 points');
-
-                  // Show collection animation
-                  const gemsAnimId = `anim_${Date.now()}`;
-                  setCollectionAnimations(prev => [...prev, {
-                    id: gemsAnimId,
-                    value: 100,
-                    x: window.innerWidth / 2,
-                    y: window.innerHeight / 2,
-                  }]);
-
-                  setTimeout(() => {
-                    setCollectionAnimations(prev => prev.filter(a => a.id !== gemsAnimId));
-                  }, 1000);
-
-                  const { collectCoin } = useGameStore.getState();
-                  collectCoin('gems', 100);
-
-                  // Remove gems
-                  if (gems.parentNode) {
-                    gems.parentNode.removeChild(gems);
-                  }
-                });
-
-                map3d.append(gems);
-                console.log('✅ Gems revealed and appended to map!');
-              } catch (error) {
-                console.error('❌ Error revealing gems:', error);
-              }
-            }, 500);
+          // Add click listener to show quiz modal
+          model.addEventListener('gmp-click', () => {
+            console.log('🧱 Mario brick tapped! Showing quiz...');
+            setShowQuizModal(true);
           });
 
           // Append model to map
@@ -1926,7 +1919,7 @@ export function MapView() {
             const map3d = mapRef.current as any;
             // Center camera on player's current position (where the pawn is)
             map3d.setAttribute('center', `${position.lat},${position.lng}`);
-            map3d.setAttribute('range', '500'); // Zoom in closer to player
+            map3d.setAttribute('range', '100'); // Zoom in closer to player
             map3d.setAttribute('tilt', '50'); // Set good viewing angle
             console.log('🧭 Compass: Centered on player position');
           }
@@ -2003,6 +1996,14 @@ export function MapView() {
             </button>
           </div>
         </div>
+      )}
+
+      {/* Quiz Modal for Mario Brick */}
+      {showQuizModal && (
+        <QuizModal
+          onCorrectAnswer={handleQuizCorrectAnswer}
+          onClose={() => setShowQuizModal(false)}
+        />
       )}
 
       {/* Collection Animations */}

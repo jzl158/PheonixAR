@@ -53,7 +53,7 @@ const MOCK_QUESTS: Quest[] = [
 type OfferCategory = 'unused' | 'used' | 'expired' | 'all';
 
 export function ProfilePage({ onClose }: ProfilePageProps) {
-  const { userCoins, phoenixCoins, novaCoins: _novaCoins, novaStreakDays } = useGameStore();
+  const { userCoins, phoenixCoins, novaCoins: _novaCoins, novaStreakDays, gemsCollected } = useGameStore();
   const [selectedTab, setSelectedTab] = useState<'quests' | 'offers'>('quests');
   const [offerCategory, setOfferCategory] = useState<OfferCategory>('unused');
 
@@ -105,7 +105,7 @@ export function ProfilePage({ onClose }: ProfilePageProps) {
           </div>
 
           {/* Balance Display */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             <div className="bg-white bg-opacity-20 rounded-lg p-2 text-center">
               <div className="text-2xl">🪙</div>
               <div className="text-white font-bold text-lg">{userCoins}</div>
@@ -120,6 +120,11 @@ export function ProfilePage({ onClose }: ProfilePageProps) {
               <div className="text-2xl">⭐</div>
               <div className="text-white font-bold text-lg">{novaStreakDays}</div>
               <div className="text-gray-200 text-xs">Streak</div>
+            </div>
+            <div className="bg-white bg-opacity-20 rounded-lg p-2 text-center">
+              <div className="text-2xl">💎</div>
+              <div className="text-white font-bold text-lg">{gemsCollected}</div>
+              <div className="text-gray-200 text-xs">Gems</div>
             </div>
           </div>
 
