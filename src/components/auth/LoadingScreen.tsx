@@ -50,23 +50,28 @@ export function LoadingScreen() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center">
+    <div className="fixed inset-0 z-50 bg-black">
       {/* Full screen background image */}
       <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: 'url(/CityExplorer.png)' }}
+        className="absolute inset-0 w-full h-full bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(/CityExplorer.png)',
+          backgroundColor: '#1a1a1a' // Fallback color
+        }}
       />
 
       {/* Gradient overlay for better button visibility */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
 
       {/* Start Exploring Button - 3/4 down the screen */}
-      <button
-        onClick={handleStartExploring}
-        className="relative z-10 mb-24 px-12 py-4 bg-primary-600 hover:bg-primary-700 text-white text-xl font-bold rounded-full shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95"
-      >
-        Start Exploring
-      </button>
+      <div className="absolute inset-x-0 bottom-0 flex justify-center pb-24 px-6">
+        <button
+          onClick={handleStartExploring}
+          className="z-10 px-12 py-4 bg-primary-600 hover:bg-primary-700 text-white text-xl font-bold rounded-full shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+        >
+          Start Exploring
+        </button>
+      </div>
     </div>
   );
 }
