@@ -453,7 +453,7 @@ export function MapView() {
             src: '/pawnresize.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 270, roll: 0 }, // Rotate to stand on base
-            scale: 1.0,
+            scale: 4.0, // Scaled up by 4x
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
@@ -1847,6 +1847,34 @@ export function MapView() {
           </button>
         )}
       </div>
+
+      {/* Compass Button - Center on Player */}
+      <button
+        onClick={() => {
+          if (mapRef.current && position) {
+            const map3d = mapRef.current as any;
+            // Center camera on player's current position (where the pawn is)
+            map3d.setAttribute('center', `${position.lat},${position.lng}`);
+            map3d.setAttribute('range', '500'); // Zoom in closer to player
+            map3d.setAttribute('tilt', '50'); // Set good viewing angle
+            console.log('🧭 Compass: Centered on player position');
+          }
+        }}
+        className="absolute bottom-24 right-6 z-30 bg-primary-600/90 backdrop-blur-sm hover:bg-primary-700 text-white p-4 rounded-full shadow-xl transition-all active:scale-95"
+        title="Center on my location"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          strokeWidth={2.5}
+          stroke="currentColor"
+          className="w-6 h-6"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+        </svg>
+      </button>
 
       {/* Coin Counter - Disabled for now (using 3D objects instead) */}
       {/* <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 z-20 bg-primary-600/90 backdrop-blur-sm text-white px-6 py-3 rounded-full shadow-xl pointer-events-none">
