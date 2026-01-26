@@ -346,21 +346,44 @@ export function MapView() {
 
       add3DModel();
 
-      // Add 5 coins randomly around the player
+      // Add coins randomly around the player with varying values and sizes
       const addCoins = async () => {
         try {
-          console.log('💰 Spawning 5 coins around player...');
+          console.log('💰 Spawning coins around player...');
 
           // Wait for map to fully initialize
           await new Promise(resolve => setTimeout(resolve, 3500));
 
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          // Generate 5 random positions within ~50 meters of player
-          for (let i = 0; i < 5; i++) {
-            // Random offset in degrees (roughly 50m = 0.0005 degrees)
-            const latOffset = (Math.random() - 0.5) * 0.001;
-            const lngOffset = (Math.random() - 0.5) * 0.001;
+          // Helper function to calculate distance in meters
+          const getDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+            const R = 6371000; // Earth's radius in meters
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c;
+          };
+
+          // Coin types: [points, scale]
+          const coinTypes = [
+            { points: 1, scale: 1 },   // Smallest
+            { points: 5, scale: 2 },
+            { points: 10, scale: 3 },
+            { points: 25, scale: 4 },  // Largest
+          ];
+
+          // Spawn 10 coins with random values within 1500 feet (457m)
+          for (let i = 0; i < 10; i++) {
+            // Random distance up to 1500 feet (457m ≈ 0.0041 degrees)
+            const angle = Math.random() * 2 * Math.PI; // Random direction
+            const distance = Math.random() * 0.0041;   // Random distance up to 1500 feet
+
+            const latOffset = distance * Math.cos(angle);
+            const lngOffset = distance * Math.sin(angle);
 
             const coinPosition = {
               lat: position.lat + latOffset,
@@ -368,23 +391,63 @@ export function MapView() {
               altitude: 0
             };
 
+            // Randomly select coin type
+            const coinType = coinTypes[Math.floor(Math.random() * coinTypes.length)];
+
             const coin = new Model3DInteractiveElement({
               src: '/coinresize.glb',
               position: coinPosition,
               orientation: { heading: 0, tilt: 0, roll: 0 },
-              scale: 3,
+              scale: coinType.scale,
               altitudeMode: 'CLAMP_TO_GROUND',
             });
 
-            // Make coin collectible
+            // Store coin data as properties
+            (coin as any)._points = coinType.points;
+            (coin as any)._position = coinPosition;
+
+            // Make coin collectible - with distance check
             coin.addEventListener('gmp-click', () => {
-              console.log(`💰 Coin ${i + 1} collected! +10 points`);
+              // Get current player position from ref
+              const currentPos = currentPositionRef.current;
+              if (!currentPos) {
+                console.log('❌ Current position not available');
+                return;
+              }
+
+              // Calculate distance to coin
+              const distanceMeters = getDistance(
+                currentPos.lat,
+                currentPos.lng,
+                coinPosition.lat,
+                coinPosition.lng
+              );
+              const distanceFeet = distanceMeters * 3.28084;
+
+              // Check if within 500 feet
+              if (distanceFeet > 500) {
+                console.log(`❌ Coin too far! Distance: ${distanceFeet.toFixed(0)} feet (need to be within 500 feet)`);
+                // Show error message to user
+                const errorAnimId = `error_${Date.now()}`;
+                setCollectionAnimations(prev => [...prev, {
+                  id: errorAnimId,
+                  value: -1, // Use -1 to indicate error
+                  x: window.innerWidth / 2,
+                  y: window.innerHeight / 2,
+                }]);
+                setTimeout(() => {
+                  setCollectionAnimations(prev => prev.filter(a => a.id !== errorAnimId));
+                }, 1000);
+                return;
+              }
+
+              console.log(`💰 Coin collected! +${coinType.points} points (${distanceFeet.toFixed(0)} feet away)`);
 
               // Show collection animation
               const coinAnimId = `coin_${Date.now()}`;
               setCollectionAnimations(prev => [...prev, {
                 id: coinAnimId,
-                value: 10,
+                value: coinType.points,
                 x: window.innerWidth / 2,
                 y: window.innerHeight / 2,
               }]);
@@ -395,7 +458,7 @@ export function MapView() {
 
               // Add points
               const { collectCoin } = useGameStore.getState();
-              collectCoin(`coin_${i}`, 10);
+              collectCoin(`coin_${i}`, coinType.points);
 
               // Remove coin
               if (coin.parentNode) {
@@ -404,10 +467,10 @@ export function MapView() {
             });
 
             map3d.append(coin);
-            console.log(`✅ Coin ${i + 1} placed at:`, coinPosition);
+            console.log(`✅ Coin ${i + 1} placed: ${coinType.points} pts, scale ${coinType.scale}, ${getDistance(position.lat, position.lng, coinPosition.lat, coinPosition.lng).toFixed(0)}m away`);
           }
 
-          console.log('✅ All 5 coins spawned successfully');
+          console.log('✅ All 10 coins spawned successfully');
         } catch (error) {
           console.error('❌ Error spawning coins:', error);
         }
@@ -430,6 +493,7 @@ export function MapView() {
   const userMarkerRef = useRef<any>(null);
   const accuracyCircleRef = useRef<any>(null);
   const markerInitializedRef = useRef(false);
+  const currentPositionRef = useRef<{ lat: number; lng: number } | null>(null);
 
   // Create user location marker once when we have both map and initial position
   useEffect(() => {
@@ -549,6 +613,13 @@ export function MapView() {
       markerInitializedRef.current = false;
     };
   }, [map, position, accuracy]);
+
+  // Update current position ref whenever position changes
+  useEffect(() => {
+    if (position) {
+      currentPositionRef.current = position;
+    }
+  }, [position]);
 
   // Update user location marker position when position changes
   useEffect(() => {
@@ -1947,9 +2018,9 @@ export function MapView() {
             pointerEvents: 'none',
             animation: 'collectCoin 1s ease-out forwards',
           }}
-          className="text-6xl font-bold text-yellow-400"
+          className={`text-6xl font-bold ${anim.value === -1 ? 'text-red-500' : 'text-yellow-400'}`}
         >
-          +{anim.value}
+          {anim.value === -1 ? 'Too far!' : `+${anim.value}`}
         </div>
       ))}
 
