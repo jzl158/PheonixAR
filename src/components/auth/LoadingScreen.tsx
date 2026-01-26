@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 
-export function LoadingScreen() {
-  const navigate = useNavigate();
+interface LoadingScreenProps {
+  onStartExploring?: () => void;
+}
+
+export function LoadingScreen({ onStartExploring }: LoadingScreenProps) {
 
   useEffect(() => {
     // Trigger confetti animation with bigger pieces
@@ -45,7 +47,9 @@ export function LoadingScreen() {
 
   const handleStartExploring = () => {
     sessionStorage.setItem('hasSeenIntro', 'true');
-    navigate('/phone');
+    if (onStartExploring) {
+      onStartExploring();
+    }
   };
 
   return (
