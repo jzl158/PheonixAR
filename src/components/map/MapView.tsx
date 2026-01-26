@@ -230,9 +230,9 @@ export function MapView() {
           // Import Model3DInteractiveElement
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          // Mario brick collectible
-          const modelSrc = '/mariobrick.glb';
-          console.log('🎯 Loading mariobrick with scale 5');
+          // Mario brick collectible (resized)
+          const modelSrc = '/mariobrickresize.glb';
+          console.log('🎯 Loading mariobrickresize with scale 5');
 
           // Create 3D model at user's location using local GLB file
           const model = new Model3DInteractiveElement({
@@ -337,7 +337,7 @@ export function MapView() {
           console.log('✅ Mario brick 3D model added at user location:', {
             position: { lat: position.lat, lng: position.lng },
             scale: 5,
-            src: '/mariobrick.glb'
+            src: '/mariobrickresize.glb'
           });
         } catch (error) {
           console.error('❌ Error adding 3D model:', error);
@@ -369,7 +369,7 @@ export function MapView() {
             };
 
             const coin = new Model3DInteractiveElement({
-              src: '/coin.glb',
+              src: '/coinresize.glb',
               position: coinPosition,
               orientation: { heading: 0, tilt: 0, roll: 0 },
               scale: 3,
@@ -446,14 +446,14 @@ export function MapView() {
         try {
           const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
 
-          console.log('🔧 Creating location marker - Using pawn.glb');
+          console.log('🔧 Creating location marker - Using pawnresize.glb');
 
-          // Use pawn as location marker (53KB - small and should work!)
+          // Use resized pawn as location marker (56KB)
           const locationMarker = new Model3DInteractiveElement({
-            src: '/pawn.glb',
+            src: '/pawnresize.glb',
             position: { lat: position.lat, lng: position.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 270, roll: 0 }, // Rotate to stand on base
-            scale: 1.0, // Reduced by 10x (was 10, now 1.0)
+            scale: 1.0,
             altitudeMode: 'CLAMP_TO_GROUND',
           });
 
