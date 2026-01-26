@@ -1,31 +1,38 @@
 import { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 
-interface LoadingScreenProps {
-  onComplete?: () => void;
-}
+export function LoadingScreen() {
+  const navigate = useNavigate();
 
-export function LoadingScreen({ onComplete }: LoadingScreenProps) {
   useEffect(() => {
-    // Trigger confetti animation
-    const duration = 2000;
+    // Trigger confetti animation with bigger pieces
+    const duration = 15000; // Run for 15 seconds
     const end = Date.now() + duration;
 
     const frame = () => {
+      // Left side confetti
       confetti({
-        particleCount: 3,
+        particleCount: 5,
         angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: ['#f97316', '#fb923c', '#fdba74'],
+        spread: 70,
+        origin: { x: 0, y: 0.6 },
+        colors: ['#EF4444', '#FFFFFF', '#3B82F6', '#A855F7'], // red, white, blue, purple
+        scalar: 1.5, // Make pieces 50% bigger
+        gravity: 1,
+        drift: 0.2,
       });
 
+      // Right side confetti
       confetti({
-        particleCount: 3,
+        particleCount: 5,
         angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: ['#f97316', '#fb923c', '#fdba74'],
+        spread: 70,
+        origin: { x: 1, y: 0.6 },
+        colors: ['#EF4444', '#FFFFFF', '#3B82F6', '#A855F7'], // red, white, blue, purple
+        scalar: 1.5, // Make pieces 50% bigger
+        gravity: 1,
+        drift: -0.2,
       });
 
       if (Date.now() < end) {
@@ -34,23 +41,32 @@ export function LoadingScreen({ onComplete }: LoadingScreenProps) {
     };
 
     frame();
+  }, []);
 
-    // Auto redirect after animation
-    const timer = setTimeout(() => {
-      if (onComplete) {
-        onComplete();
-      }
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [onComplete]);
+  const handleStartExploring = () => {
+    // Mark intro as seen for this session
+    sessionStorage.setItem('hasSeenIntro', 'true');
+    navigate('/phone');
+  };
 
   return (
-    <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-white mb-4">SkylARk</h1>
-        <p className="text-xl text-gray-400 animate-pulse">Loading...</p>
-      </div>
+    <div className="fixed inset-0 z-50 flex items-end justify-center">
+      {/* Full screen background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: 'url(/CityExplorer.png)' }}
+      />
+
+      {/* Gradient overlay for better button visibility */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
+
+      {/* Start Exploring Button - 3/4 down the screen */}
+      <button
+        onClick={handleStartExploring}
+        className="relative z-10 mb-24 px-12 py-4 bg-primary-600 hover:bg-primary-700 text-white text-xl font-bold rounded-full shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95"
+      >
+        Start Exploring
+      </button>
     </div>
   );
 }

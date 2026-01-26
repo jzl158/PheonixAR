@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuthStore } from './store/authStore';
 import { LoadingScreen } from './components/auth/LoadingScreen';
 import { PhoneInput } from './components/auth/PhoneInput';
@@ -21,18 +21,14 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const [showLoading, setShowLoading] = useState(true);
   const { isAuthenticated } = useAuthStore();
+  const [hasSeenIntro] = useState(() => {
+    // Check if user has seen intro in this session
+    return sessionStorage.getItem('hasSeenIntro') === 'true';
+  });
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowLoading(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  if (showLoading) {
+  // Show intro screen only once per session, unless already authenticated
+  if (!hasSeenIntro && !isAuthenticated) {
     return <LoadingScreen />;
   }
 
