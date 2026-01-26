@@ -9,7 +9,7 @@ export function LoadingScreen({ onStartExploring }: LoadingScreenProps) {
 
   useEffect(() => {
     // Trigger confetti animation with bigger pieces
-    const duration = 15000; // Run for 15 seconds
+    const duration = 5000; // Run for 5 seconds
     const end = Date.now() + duration;
 
     const frame = () => {
@@ -54,7 +54,7 @@ export function LoadingScreen({ onStartExploring }: LoadingScreenProps) {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col items-center justify-end pb-32"
+      className="fixed inset-0 flex flex-col items-center justify-end pb-28"
       style={{
         backgroundImage: 'url(/CityExplorer.png)',
         backgroundSize: 'cover',
@@ -62,10 +62,13 @@ export function LoadingScreen({ onStartExploring }: LoadingScreenProps) {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      {/* Start Exploring Button */}
+      {/* Start Exploring Button - Purple with Glow */}
       <button
         onClick={handleStartExploring}
-        className="px-12 py-4 bg-primary-600 hover:bg-primary-700 text-white text-xl font-bold rounded-full shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 z-50"
+        className="px-12 py-4 bg-purple-600 hover:bg-purple-700 text-white text-xl font-bold rounded-full shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 z-50"
+        style={{
+          boxShadow: '0 0 20px rgba(168, 85, 247, 0.6), 0 0 40px rgba(168, 85, 247, 0.4), 0 0 60px rgba(168, 85, 247, 0.2)'
+        }}
       >
         Start Exploring
       </button>
