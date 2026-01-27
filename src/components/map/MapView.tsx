@@ -1892,8 +1892,8 @@ export function MapView() {
             const map3d = mapRef.current as any;
             // Center camera on player's current position (where the pawn is)
             map3d.setAttribute('center', `${position.lat},${position.lng}`);
-            map3d.setAttribute('range', '47'); // Very close view
-            map3d.setAttribute('tilt', '47'); // Set viewing angle
+            map3d.setAttribute('range', '47'); // Good distance
+            map3d.setAttribute('tilt', '30'); // Lower tilt for more top-down view
             console.log('🧭 Compass: Centered on player position');
           }
         }}
