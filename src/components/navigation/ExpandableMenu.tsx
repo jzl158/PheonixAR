@@ -22,7 +22,7 @@ export function ExpandableMenu({
   };
 
   return (
-    <div className="fixed bottom-20 left-0 right-0 flex justify-center items-center z-50 pointer-events-none">
+    <div className="fixed bottom-32 left-0 right-0 flex justify-center items-center z-50 pointer-events-none">
       <div className="relative flex items-center justify-center pointer-events-auto">
         {/* Left side menu items */}
         <div
