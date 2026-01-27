@@ -16,6 +16,7 @@ import { PhoenixOffersCards } from '../offers/PhoenixOffersCards';
 import { NotificationPanel } from '../notifications/NotificationPanel';
 import { Leaderboard } from '../leaderboard/Leaderboard';
 import { QuizModal } from '../quiz/QuizModal';
+import { InventoryModal } from '../inventory/InventoryModal';
 
 // Declare Google Maps, 3D Maps, and 8th Wall types
 declare global {
@@ -43,7 +44,7 @@ export function MapView() {
   const [debugMode, setDebugMode] = useState(false);
 
   // UI Panel State
-  type ActivePanel = 'none' | 'profile' | 'offers' | 'leaderboard' | 'notifications' | 'friends' | 'chat';
+  type ActivePanel = 'none' | 'profile' | 'offers' | 'leaderboard' | 'notifications' | 'friends' | 'chat' | 'inventory';
   const [activePanel, setActivePanel] = useState<ActivePanel>('none');
 
   // Collection animation state
@@ -1777,6 +1778,7 @@ export function MapView() {
       <TopBar
         onNotificationClick={() => setActivePanel('notifications')}
         onProfileClick={() => setActivePanel('profile')}
+        onCoinClick={() => setActivePanel('leaderboard')}
       />
 
       {/* Mission Banner - Right Below Trophy Menu */}
@@ -1854,6 +1856,15 @@ export function MapView() {
           title="Toggle Debug Mode"
         >
           <span className="text-xl">{debugMode ? '🔧' : '⚙️'}</span>
+        </button>
+
+        {/* Inventory Button */}
+        <button
+          onClick={() => setActivePanel('inventory')}
+          className="bg-black/70 backdrop-blur-md text-white p-3 rounded-full shadow-lg hover:bg-black/80 transition-all active:scale-95"
+          title="Open Inventory"
+        >
+          <span className="text-xl">🎒</span>
         </button>
 
         {debugMode && (
@@ -1970,6 +1981,9 @@ export function MapView() {
           </div>
         </div>
       )}
+
+      {/* Inventory Modal */}
+      {activePanel === 'inventory' && <InventoryModal onClose={() => setActivePanel('none')} />}
 
       {/* Quiz Modal for Mario Brick */}
       {showQuizModal && (

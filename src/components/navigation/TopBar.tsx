@@ -3,9 +3,10 @@ import { useGameStore } from '../../store/gameStore';
 interface TopBarProps {
   onNotificationClick?: () => void;
   onProfileClick?: () => void;
+  onCoinClick?: () => void;
 }
 
-export function TopBar({ onNotificationClick, onProfileClick }: TopBarProps) {
+export function TopBar({ onNotificationClick, onProfileClick, onCoinClick }: TopBarProps) {
   const { userCoins, collectedCoinIds: _collectedCoinIds, phoenixCoins, novaCoins } = useGameStore();
 
   return (
@@ -20,10 +21,13 @@ export function TopBar({ onNotificationClick, onProfileClick }: TopBarProps) {
 
       {/* Center - Coin Balances */}
       <div className="flex items-center gap-2">
-        <div className="bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5">
+        <button
+          onClick={onCoinClick}
+          className="bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5 hover:bg-black/70 transition-colors cursor-pointer"
+        >
           <span className="text-white text-lg">🪙</span>
           <span className="text-white font-semibold">{userCoins}</span>
-        </div>
+        </button>
         <div className="bg-black/60 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1.5">
           <span className="text-white text-lg">🔥</span>
           <span className="text-white font-semibold">{phoenixCoins}</span>

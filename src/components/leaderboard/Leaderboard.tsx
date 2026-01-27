@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useGameStore } from '../../store/gameStore';
 
 interface LeaderboardProps {
   onClose: () => void;
@@ -13,24 +14,49 @@ interface LeaderboardEntry {
   isCurrentUser?: boolean;
 }
 
-// Mock leaderboard data
-const MOCK_LEADERBOARD: LeaderboardEntry[] = [
-  { rank: 1, username: 'PhoenixMaster', avatar: '🔥', gSkyPoints: 125000, level: 45 },
-  { rank: 2, username: 'SkyRunner23', avatar: '🦅', gSkyPoints: 118500, level: 42 },
-  { rank: 3, username: 'NovaCollector', avatar: '⭐', gSkyPoints: 112300, level: 40 },
-  { rank: 4, username: 'AtlantaExplorer', avatar: '🗺️', gSkyPoints: 98700, level: 38 },
-  { rank: 5, username: 'CoinHunter', avatar: '🪙', gSkyPoints: 87500, level: 35 },
-  { rank: 6, username: 'You', avatar: '🦅', gSkyPoints: 76200, level: 32, isCurrentUser: true },
-  { rank: 7, username: 'QuestMaster', avatar: '⚔️', gSkyPoints: 72100, level: 31 },
-  { rank: 8, username: 'BadgeCollector', avatar: '🏅', gSkyPoints: 68900, level: 30 },
-  { rank: 9, username: 'StreakKeeper', avatar: '🔥', gSkyPoints: 65400, level: 29 },
-  { rank: 10, username: 'MapWanderer', avatar: '🧭', gSkyPoints: 61200, level: 28 },
-];
+// Generate random character username (simulating IP-based session)
+const generateRandomUsername = (seed: number): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  let random = seed;
+  for (let i = 0; i < 8; i++) {
+    random = (random * 9301 + 49297) % 233280;
+    result += chars[Math.floor((random / 233280) * chars.length)];
+  }
+  return result;
+};
+
+// Generate mock leaderboard data with random usernames
+const generateLeaderboard = (currentUserPoints: number): LeaderboardEntry[] => {
+  const avatars = ['🔥', '🦅', '⭐', '🗺️', '🪙', '⚔️', '🏅', '🧭', '💎', '🎯'];
+  const entries: LeaderboardEntry[] = [];
+
+  // Generate 10 entries with random names
+  for (let i = 1; i <= 10; i++) {
+    const isCurrentUser = i === 6; // Place user at 6th position for demo
+    const points = isCurrentUser ? currentUserPoints : Math.floor(125000 - (i * 5000) + Math.random() * 3000);
+
+    entries.push({
+      rank: i,
+      username: isCurrentUser ? 'You' : generateRandomUsername(12345 + i * 100),
+      avatar: avatars[i % avatars.length],
+      gSkyPoints: points,
+      level: Math.floor(45 - i * 1.5),
+      isCurrentUser,
+    });
+  }
+
+  return entries;
+};
 
 type LeaderboardPeriod = 'daily' | 'weekly' | 'all-time';
 
 export function Leaderboard({ onClose }: LeaderboardProps) {
+  const { userCoins } = useGameStore();
   const [period, setPeriod] = useState<LeaderboardPeriod>('weekly');
+
+  // Generate leaderboard with current user's points
+  const MOCK_LEADERBOARD = generateLeaderboard(userCoins);
 
   const getRankColor = (rank: number) => {
     if (rank === 1) return 'from-yellow-400 to-yellow-600';
