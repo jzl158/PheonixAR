@@ -54,6 +54,9 @@ export function MapView() {
   const [brickModel, setBrickModel] = useState<any>(null);
   const [brickPosition, setBrickPosition] = useState<{ lat: number; lng: number } | null>(null);
 
+  // Player level state
+  const [playerLevel] = useState(1);
+
   // Load 8th Wall AR script
   useEffect(() => {
     const appKey = import.meta.env.VITE_EIGHTH_WALL_APP_KEY;
@@ -1775,6 +1778,43 @@ export function MapView() {
         onNotificationClick={() => setActivePanel('notifications')}
         onProfileClick={() => setActivePanel('profile')}
       />
+
+      {/* Mission Banner - Above Bottom Menu */}
+      <div className="absolute bottom-24 left-0 right-0 z-20 px-4">
+        <div className="bg-gradient-to-r from-purple-900/95 via-purple-800/95 to-purple-900/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-purple-500/50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3">
+            {/* Level Badge on Left */}
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center border-4 border-white shadow-lg">
+                  <div className="text-center">
+                    <div className="text-xs font-bold text-white leading-tight">Level</div>
+                    <div className="text-xl font-black text-white leading-tight">{playerLevel}</div>
+                  </div>
+                </div>
+                {/* Glow effect */}
+                <div
+                  className="absolute inset-0 rounded-full animate-pulse"
+                  style={{
+                    boxShadow: '0 0 20px rgba(251, 191, 36, 0.6)'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Mission Text in Center */}
+            <div className="flex-1 text-center px-4">
+              <div className="text-xs font-semibold text-purple-300 mb-1">CURRENT MISSION</div>
+              <div className="text-sm font-bold text-white">
+                Tap Mario Brick to Unlock Hidden Gems
+              </div>
+            </div>
+
+            {/* Empty right side for balance */}
+            <div className="w-16"></div>
+          </div>
+        </div>
+      </div>
 
       {/* Expandable Menu Bar */}
       <ExpandableMenu
