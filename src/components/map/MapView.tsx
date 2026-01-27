@@ -1779,8 +1779,8 @@ export function MapView() {
         onProfileClick={() => setActivePanel('profile')}
       />
 
-      {/* Mission Banner - Below Trophy Menu */}
-      <div className="absolute bottom-4 left-0 right-0 z-20 px-4">
+      {/* Mission Banner - 5px Below Trophy Menu */}
+      <div className="absolute bottom-8 left-0 right-0 z-20 px-4">
         <div className="bg-gradient-to-r from-purple-900/95 via-purple-800/95 to-purple-900/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-purple-500/50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3">
             {/* Level Badge on Left */}
@@ -1855,73 +1855,6 @@ export function MapView() {
         >
           <span className="text-xl">{debugMode ? '🔧' : '⚙️'}</span>
         </button>
-
-        {/* 3D Map Rotation Controls */}
-        {map && map.tagName === 'GMP-MAP-3D' && (
-          <>
-            <div className="bg-black/70 backdrop-blur-md rounded-full p-2 shadow-lg">
-              <div className="flex flex-col gap-1">
-                <button
-                  onClick={() => {
-                    if (mapRef.current) {
-                      const map3d = mapRef.current as any;
-                      const currentTilt = parseFloat(map3d.getAttribute('tilt') || '50');
-                      map3d.setAttribute('tilt', Math.min(90, currentTilt + 10).toString());
-                    }
-                  }}
-                  className="text-white text-xl hover:scale-110 transition-transform"
-                  title="Tilt up"
-                >
-                  ⬆️
-                </button>
-                <button
-                  onClick={() => {
-                    if (mapRef.current) {
-                      const map3d = mapRef.current as any;
-                      const currentTilt = parseFloat(map3d.getAttribute('tilt') || '50');
-                      map3d.setAttribute('tilt', Math.max(0, currentTilt - 10).toString());
-                    }
-                  }}
-                  className="text-white text-xl hover:scale-110 transition-transform"
-                  title="Tilt down"
-                >
-                  ⬇️
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-black/70 backdrop-blur-md rounded-full p-2 shadow-lg">
-              <div className="flex flex-col gap-1">
-                <button
-                  onClick={() => {
-                    if (mapRef.current) {
-                      const map3d = mapRef.current as any;
-                      const currentHeading = parseFloat(map3d.getAttribute('heading') || '0');
-                      map3d.setAttribute('heading', ((currentHeading - 45 + 360) % 360).toString());
-                    }
-                  }}
-                  className="text-white text-xl hover:scale-110 transition-transform"
-                  title="Rotate counter-clockwise"
-                >
-                  ↶
-                </button>
-                <button
-                  onClick={() => {
-                    if (mapRef.current) {
-                      const map3d = mapRef.current as any;
-                      const currentHeading = parseFloat(map3d.getAttribute('heading') || '0');
-                      map3d.setAttribute('heading', ((currentHeading + 45) % 360).toString());
-                    }
-                  }}
-                  className="text-white text-xl hover:scale-110 transition-transform"
-                  title="Rotate clockwise"
-                >
-                  ↷
-                </button>
-              </div>
-            </div>
-          </>
-        )}
 
         {debugMode && (
           <button
