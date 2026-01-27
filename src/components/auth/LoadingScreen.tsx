@@ -9,7 +9,7 @@ export function LoadingScreen({ onStartExploring }: LoadingScreenProps) {
 
   useEffect(() => {
     // Trigger confetti animation with bigger pieces
-    const duration = 5000; // Run for 5 seconds
+    const duration = 3000; // Run for 3 seconds
     const end = Date.now() + duration;
 
     const frame = () => {
