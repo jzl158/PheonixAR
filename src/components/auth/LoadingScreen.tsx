@@ -46,7 +46,6 @@ export function LoadingScreen({ onStartExploring }: LoadingScreenProps) {
   }, []);
 
   const handleStartExploring = () => {
-    sessionStorage.setItem('hasSeenIntro', 'true');
     if (onStartExploring) {
       onStartExploring();
     }

@@ -22,12 +22,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const { isAuthenticated } = useAuthStore();
-  const [hasSeenIntro, setHasSeenIntro] = useState(() => {
-    return sessionStorage.getItem('hasSeenIntro') === 'true';
-  });
+  const [hasSeenIntro, setHasSeenIntro] = useState(false);
 
-  // Show intro screen only once per session, unless already authenticated
-  if (!hasSeenIntro && !isAuthenticated) {
+  // Always show intro screen first (every page load)
+  if (!hasSeenIntro) {
     return <LoadingScreen onStartExploring={() => setHasSeenIntro(true)} />;
   }
 
