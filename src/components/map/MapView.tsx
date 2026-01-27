@@ -1779,8 +1779,8 @@ export function MapView() {
         onProfileClick={() => setActivePanel('profile')}
       />
 
-      {/* Mission Banner - 5px Below Trophy Menu */}
-      <div className="absolute bottom-8 left-0 right-0 z-20 px-4">
+      {/* Mission Banner - Right Below Trophy Menu */}
+      <div className="absolute bottom-12 left-0 right-0 z-20 px-4">
         <div className="bg-gradient-to-r from-purple-900/95 via-purple-800/95 to-purple-900/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-purple-500/50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3">
             {/* Level Badge on Left */}
@@ -1892,7 +1892,7 @@ export function MapView() {
             const map3d = mapRef.current as any;
             // Center camera on player's current position (where the pawn is)
             map3d.setAttribute('center', `${position.lat},${position.lng}`);
-            map3d.setAttribute('range', '800'); // Zoom out to see more area
+            map3d.setAttribute('range', '500'); // Good balance - not too close, not too far
             map3d.setAttribute('tilt', '47'); // Set viewing angle
             console.log('🧭 Compass: Centered on player position');
           }
