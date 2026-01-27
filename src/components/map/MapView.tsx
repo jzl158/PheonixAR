@@ -1780,7 +1780,7 @@ export function MapView() {
       />
 
       {/* Mission Banner - Right Below Trophy Menu */}
-      <div className="absolute bottom-24 left-0 right-0 z-20 px-4">
+      <div className="absolute bottom-[99px] left-0 right-0 z-20 px-4">
         <div className="bg-gradient-to-r from-purple-900/95 via-purple-800/95 to-purple-900/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-purple-500/50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3">
             {/* Level Badge on Left */}
