@@ -17,6 +17,7 @@ import { NotificationPanel } from '../notifications/NotificationPanel';
 import { Leaderboard } from '../leaderboard/Leaderboard';
 import { QuizModal } from '../quiz/QuizModal';
 import { InventoryModal } from '../inventory/InventoryModal';
+import { snapToNearestRoad, haversineDistance } from '../../services/roadsService';
 
 // Declare Google Maps, 3D Maps, and 8th Wall types
 declare global {
@@ -492,6 +493,10 @@ export function MapView() {
   const markerInitializedRef = useRef(false);
   const currentPositionRef = useRef<{ lat: number; lng: number } | null>(null);
 
+  // Roads API throttling refs
+  const lastSnappedPositionRef = useRef<{ lat: number; lng: number } | null>(null);
+  const lastSnapRequestRef = useRef<{ lat: number; lng: number } | null>(null);
+
   // Create user location marker once when we have both map and initial position
   useEffect(() => {
     if (!map || !position || markerInitializedRef.current) return;
@@ -509,10 +514,39 @@ export function MapView() {
 
           console.log('🔧 Creating location marker - Using pawn2.glb');
 
+          // Snap to nearest road if needed (throttle to >5m movement)
+          const shouldSnap =
+            !lastSnapRequestRef.current ||
+            haversineDistance(
+              position.lat,
+              position.lng,
+              lastSnapRequestRef.current.lat,
+              lastSnapRequestRef.current.lng
+            ) > 5;
+
+          let finalPosition = { lat: position.lat, lng: position.lng };
+
+          if (shouldSnap) {
+            console.log('🛣️ Attempting to snap to nearest road...');
+            const snapped = await snapToNearestRoad(position.lat, position.lng);
+            if (snapped) {
+              finalPosition = { lat: snapped.lat, lng: snapped.lng };
+              lastSnappedPositionRef.current = finalPosition;
+              lastSnapRequestRef.current = { lat: position.lat, lng: position.lng };
+              console.log('✅ Using snapped position:', finalPosition);
+            } else {
+              console.log('⚠️ Road snap failed, using raw GPS');
+            }
+          } else if (lastSnappedPositionRef.current) {
+            // Use cached snapped position
+            finalPosition = lastSnappedPositionRef.current;
+            console.log('📦 Using cached snapped position');
+          }
+
           // Use pawn2 as location marker (56KB)
           const locationMarker = new Model3DInteractiveElement({
             src: '/pawn2.glb',
-            position: { lat: position.lat, lng: position.lng, altitude: 0 },
+            position: { lat: finalPosition.lat, lng: finalPosition.lng, altitude: 0 },
             orientation: { heading: 0, tilt: 270, roll: 0 }, // Rotate to stand on base
             scale: 4.0, // Scaled up by 4x
             altitudeMode: 'CLAMP_TO_GROUND',
@@ -625,28 +659,56 @@ export function MapView() {
       return;
     }
 
-    console.log('📍 Updating user location to:', { lat: position.lat.toFixed(6), lng: position.lng.toFixed(6) });
+    const updatePosition = async () => {
+      console.log('📍 Updating user location to:', { lat: position.lat.toFixed(6), lng: position.lng.toFixed(6) });
 
-    if (map && map.tagName === 'GMP-MAP-3D') {
-      // For Model3DInteractiveElement: direct position assignment works!
-      try {
-        userMarkerRef.current.position = { lat: position.lat, lng: position.lng };
-        console.log('✅ 3D marker position updated (Model3D)');
-      } catch (error) {
-        console.error('❌ Failed to update 3D marker:', error);
-      }
-    } else if (userMarkerRef.current.setPosition) {
-      // Update 2D marker position
-      userMarkerRef.current.setPosition({ lat: position.lat, lng: position.lng });
-      console.log('✅ 2D marker position updated');
+      // Check if we need to snap to road (throttle to >5m movement)
+      const shouldSnap =
+        !lastSnapRequestRef.current ||
+        haversineDistance(
+          position.lat,
+          position.lng,
+          lastSnapRequestRef.current.lat,
+          lastSnapRequestRef.current.lng
+        ) > 5;
 
-      // Update accuracy circle
-      if (accuracyCircleRef.current && accuracy) {
-        accuracyCircleRef.current.setCenter({ lat: position.lat, lng: position.lng });
-        accuracyCircleRef.current.setRadius(accuracy);
-        console.log('✅ Accuracy circle updated:', accuracy + 'm');
+      let finalPosition = { lat: position.lat, lng: position.lng };
+
+      if (shouldSnap) {
+        const snapped = await snapToNearestRoad(position.lat, position.lng);
+        if (snapped) {
+          finalPosition = { lat: snapped.lat, lng: snapped.lng };
+          lastSnappedPositionRef.current = finalPosition;
+          lastSnapRequestRef.current = { lat: position.lat, lng: position.lng };
+        }
+      } else if (lastSnappedPositionRef.current) {
+        // Use cached snapped position
+        finalPosition = lastSnappedPositionRef.current;
       }
-    }
+
+      if (map && map.tagName === 'GMP-MAP-3D') {
+        // For Model3DInteractiveElement: direct position assignment works!
+        try {
+          userMarkerRef.current.position = { lat: finalPosition.lat, lng: finalPosition.lng };
+          console.log('✅ 3D marker position updated (Model3D)');
+        } catch (error) {
+          console.error('❌ Failed to update 3D marker:', error);
+        }
+      } else if (userMarkerRef.current.setPosition) {
+        // Update 2D marker position
+        userMarkerRef.current.setPosition({ lat: finalPosition.lat, lng: finalPosition.lng });
+        console.log('✅ 2D marker position updated');
+
+        // Update accuracy circle
+        if (accuracyCircleRef.current && accuracy) {
+          accuracyCircleRef.current.setCenter({ lat: finalPosition.lat, lng: finalPosition.lng });
+          accuracyCircleRef.current.setRadius(accuracy);
+          console.log('✅ Accuracy circle updated:', accuracy + 'm');
+        }
+      }
+    };
+
+    updatePosition();
   }, [position, accuracy, map]);
 
   // TODO: Marker rendering disabled - will use 3D objects instead
@@ -1933,8 +1995,25 @@ export function MapView() {
       {debugMode && (
         <div className="absolute top-4 left-4 z-50 bg-black/80 text-white text-xs p-3 rounded-lg backdrop-blur-sm max-w-xs">
           <div className="font-bold mb-1">Debug Info (3D Map):</div>
-          <div>Lat: {position.lat.toFixed(6)}</div>
-          <div>Lng: {position.lng.toFixed(6)}</div>
+          <div>Raw GPS: {position.lat.toFixed(6)}, {position.lng.toFixed(6)}</div>
+          <div>
+            Snapped:{' '}
+            {lastSnappedPositionRef.current
+              ? `${lastSnappedPositionRef.current.lat.toFixed(6)}, ${lastSnappedPositionRef.current.lng.toFixed(6)}`
+              : 'None'}
+          </div>
+          <div>
+            Distance from last snap:{' '}
+            {lastSnapRequestRef.current
+              ? haversineDistance(
+                  position.lat,
+                  position.lng,
+                  lastSnapRequestRef.current.lat,
+                  lastSnapRequestRef.current.lng
+                ).toFixed(1)
+              : '0'}
+            m
+          </div>
           <div>GPS Accuracy: {gpsAccuracy ? `${gpsAccuracy.toFixed(1)}m` : 'unknown'}</div>
           <div>Maps 3D: {mapsLoaded ? '✓' : '✗'}</div>
           <div>Mode: {(mapRef.current as any)?.getAttribute('mode') || 'none'}</div>
