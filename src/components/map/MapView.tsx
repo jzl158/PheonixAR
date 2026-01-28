@@ -17,6 +17,7 @@ import { NotificationPanel } from '../notifications/NotificationPanel';
 import { Leaderboard } from '../leaderboard/Leaderboard';
 import { QuizModal } from '../quiz/QuizModal';
 import { InventoryModal } from '../inventory/InventoryModal';
+import { LocationCard } from '../location/LocationCard';
 import { snapToNearestRoad, haversineDistance } from '../../services/roadsService';
 
 // Declare Google Maps, 3D Maps, and 8th Wall types
@@ -58,6 +59,17 @@ export function MapView() {
 
   // Player level state
   const [playerLevel] = useState(1);
+
+  // Selected location state for LocationCard modal
+  const [selectedLocation, setSelectedLocation] = useState<{
+    name: string;
+    category: string;
+    distance: number;
+    imageUrl?: string;
+    activationsCount?: number;
+    onCollect?: () => void;
+    collectLabel?: string;
+  } | null>(null);
 
   // Load 8th Wall AR script
   useEffect(() => {
@@ -404,7 +416,7 @@ export function MapView() {
             (coin as any)._points = coinType.points;
             (coin as any)._position = coinPosition;
 
-            // Make coin collectible - with distance check
+            // Make coin tappable - show location card
             coin.addEventListener('gmp-click', () => {
               // Get current player position from ref
               const currentPos = currentPositionRef.current;
@@ -420,48 +432,65 @@ export function MapView() {
                 coinPosition.lat,
                 coinPosition.lng
               );
+              const distanceMiles = distanceMeters * 0.000621371; // Convert to miles
               const distanceFeet = distanceMeters * 3.28084;
 
-              // Check if within 500 feet
-              if (distanceFeet > 500) {
-                console.log(`❌ Coin too far! Distance: ${distanceFeet.toFixed(0)} feet (need to be within 500 feet)`);
-                // Show error message to user
-                const errorAnimId = `error_${Date.now()}`;
-                setCollectionAnimations(prev => [...prev, {
-                  id: errorAnimId,
-                  value: -1, // Use -1 to indicate error
-                  x: window.innerWidth / 2,
-                  y: window.innerHeight / 2,
-                }]);
-                setTimeout(() => {
-                  setCollectionAnimations(prev => prev.filter(a => a.id !== errorAnimId));
-                }, 1000);
-                return;
-              }
+              console.log(`💰 Coin tapped! Showing location card...`);
 
-              console.log(`💰 Coin collected! +${coinType.points} points (${distanceFeet.toFixed(0)} feet away)`);
+              // Show location card modal with collect action
+              setSelectedLocation({
+                name: `GSKY Coin (${coinType.points} pts)`,
+                category: 'Collectible',
+                distance: distanceMiles,
+                imageUrl: undefined, // Will show default coin emoji
+                activationsCount: 0,
+                collectLabel: `Collect ${coinType.points} pts`,
+                onCollect: () => {
+                  // Check if within 500 feet
+                  if (distanceFeet > 500) {
+                    console.log(`❌ Coin too far! Distance: ${distanceFeet.toFixed(0)} feet (need to be within 500 feet)`);
+                    // Show error message to user
+                    const errorAnimId = `error_${Date.now()}`;
+                    setCollectionAnimations(prev => [...prev, {
+                      id: errorAnimId,
+                      value: -1, // Use -1 to indicate error
+                      x: window.innerWidth / 2,
+                      y: window.innerHeight / 2,
+                    }]);
+                    setTimeout(() => {
+                      setCollectionAnimations(prev => prev.filter(a => a.id !== errorAnimId));
+                    }, 1000);
+                    return;
+                  }
 
-              // Show collection animation
-              const coinAnimId = `coin_${Date.now()}`;
-              setCollectionAnimations(prev => [...prev, {
-                id: coinAnimId,
-                value: coinType.points,
-                x: window.innerWidth / 2,
-                y: window.innerHeight / 2,
-              }]);
+                  console.log(`💰 Coin collected! +${coinType.points} points (${distanceFeet.toFixed(0)} feet away)`);
 
-              setTimeout(() => {
-                setCollectionAnimations(prev => prev.filter(a => a.id !== coinAnimId));
-              }, 1000);
+                  // Show collection animation
+                  const coinAnimId = `coin_${Date.now()}`;
+                  setCollectionAnimations(prev => [...prev, {
+                    id: coinAnimId,
+                    value: coinType.points,
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                  }]);
 
-              // Add points
-              const { collectCoin } = useGameStore.getState();
-              collectCoin(`coin_${i}`, coinType.points);
+                  setTimeout(() => {
+                    setCollectionAnimations(prev => prev.filter(a => a.id !== coinAnimId));
+                  }, 1000);
 
-              // Remove coin
-              if (coin.parentNode) {
-                coin.parentNode.removeChild(coin);
-              }
+                  // Add points
+                  const { collectCoin } = useGameStore.getState();
+                  collectCoin(`coin_${i}`, coinType.points);
+
+                  // Remove coin
+                  if (coin.parentNode) {
+                    coin.parentNode.removeChild(coin);
+                  }
+
+                  // Close modal
+                  setSelectedLocation(null);
+                },
+              });
             });
 
             map3d.append(coin);
@@ -2090,6 +2119,20 @@ export function MapView() {
           {anim.value === -1 ? 'Too far!' : `+${anim.value}`}
         </div>
       ))}
+
+      {/* Location Card Modal */}
+      {selectedLocation && (
+        <LocationCard
+          name={selectedLocation.name}
+          category={selectedLocation.category}
+          distance={selectedLocation.distance}
+          imageUrl={selectedLocation.imageUrl}
+          activationsCount={selectedLocation.activationsCount}
+          onClose={() => setSelectedLocation(null)}
+          onCollect={selectedLocation.onCollect}
+          collectLabel={selectedLocation.collectLabel}
+        />
+      )}
 
       {/* Collection Animation CSS */}
       <style>{`
