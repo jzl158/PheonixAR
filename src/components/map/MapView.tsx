@@ -38,7 +38,7 @@ export function MapView() {
   const { position, isLoading, error, accuracy } = useGeolocation();
   // const { coins, attemptCollectCoin } = useCoins(position);
   // const { phoenixCoins, novaCoins, attemptCollectPhoenixCoin, attemptCollectNovaCoin } = useSpecialCoins(position);
-  const { setHomebases, collectibles, setCollectibles } = useGameStore();
+  const { setHomebases, collectibles, setCollectibles, marioBrickCollected } = useGameStore();
   // const { collectCollectible, getCollectibleState } = useGameStore(); // Will use these when migrating to state system
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [mapsLoaded, setMapsLoaded] = useState(false);
@@ -118,6 +118,10 @@ export function MapView() {
   // Handle correct quiz answer - remove brick and reveal gems
   const handleQuizCorrectAnswer = async () => {
     console.log('✅ Quiz answered correctly! Removing brick and revealing gems...');
+
+    // Mark mario brick as collected so it doesn't respawn
+    const { setMarioBrickCollected } = useGameStore.getState();
+    setMarioBrickCollected();
 
     // Remove the mario brick from the map
     if (brickModel && brickModel.parentNode) {
@@ -299,6 +303,12 @@ export function MapView() {
       // Add custom 3D model at user location using local GLB file
       const add3DModel = async () => {
         try {
+          // Skip if mario brick was already collected
+          if (marioBrickCollected) {
+            console.log('🧱 Mario brick already collected, skipping creation');
+            return;
+          }
+
           console.log('🎨 Adding custom 3D model from local file...');
           console.log('🎨 User position:', position);
 

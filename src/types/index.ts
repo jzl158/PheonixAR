@@ -77,6 +77,7 @@ export interface GameState {
   phoenixCollectionHistory: Date[];
   collectibles: Collectible[];
   gemsCollected: number;
+  marioBrickCollected: boolean;
   setCoins: (coins: Coin[]) => void;
   collectCoin: (coinId: string, value: number) => void;
   addCoins: (coins: Coin[]) => void;
@@ -89,6 +90,7 @@ export interface GameState {
   addNovaCoin: () => void;
   addPoints: (points: number) => void;
   addGem: () => void;
+  setMarioBrickCollected: () => void;
 }
 
 // Map Types

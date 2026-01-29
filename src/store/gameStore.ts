@@ -16,6 +16,7 @@ export const useGameStore = create<GameState>()(
       phoenixCollectionHistory: [],
       collectibles: [],
       gemsCollected: 0,
+      marioBrickCollected: false,
 
   setCoins: (coins: Coin[]) => {
     set({ coins });
@@ -132,6 +133,11 @@ export const useGameStore = create<GameState>()(
     }));
     console.log('💎 Gems Collected');
   },
+
+  setMarioBrickCollected: () => {
+    set({ marioBrickCollected: true });
+    console.log('🧱 Mario brick collected - will not respawn');
+  },
 }),
 {
   name: 'skylark-game-storage',
@@ -145,6 +151,7 @@ export const useGameStore = create<GameState>()(
     phoenixCollectionHistory: state.phoenixCollectionHistory,
     collectibles: state.collectibles,
     gemsCollected: state.gemsCollected,
+    marioBrickCollected: state.marioBrickCollected,
   }),
 }
 ));
