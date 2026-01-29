@@ -151,7 +151,7 @@ export const useGameStore = create<GameState>()(
     phoenixCollectionHistory: state.phoenixCollectionHistory,
     collectibles: state.collectibles,
     gemsCollected: state.gemsCollected,
-    marioBrickCollected: state.marioBrickCollected,
+    // marioBrickCollected is NOT persisted - resets on fresh game load
   }),
 }
 ));
