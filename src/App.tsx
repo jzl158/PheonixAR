@@ -59,6 +59,16 @@ function App() {
   const { isAuthenticated } = useAuthStore();
   const [hasSeenIntro, setHasSeenIntro] = useState(false);
 
+  // Migrate old storage key to new one (one-time migration)
+  useEffect(() => {
+    const oldKey = localStorage.getItem('hasVisitedMap');
+    if (oldKey !== null) {
+      // Clear old key
+      localStorage.removeItem('hasVisitedMap');
+      console.log('✅ Migrated from old hasVisitedMap to lastActiveScreen');
+    }
+  }, []);
+
   // Always show intro screen first (every page load)
   if (!hasSeenIntro) {
     return <LoadingScreen onStartExploring={() => setHasSeenIntro(true)} />;
