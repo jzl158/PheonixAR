@@ -26,9 +26,12 @@ function WalletWrapper() {
   const navigate = useNavigate();
   const [showInventory, setShowInventory] = useState(false);
 
-  // Mark that user has visited map when navigating to it
+  // Save wallet as last active screen
+  useEffect(() => {
+    localStorage.setItem('lastActiveScreen', 'wallet');
+  }, []);
+
   const handleNavigateToMap = () => {
-    localStorage.setItem('hasVisitedMap', 'true');
     navigate('/map');
   };
 
@@ -44,9 +47,9 @@ function WalletWrapper() {
 }
 
 function MapWrapper() {
-  // When leaving map, remember user has visited it
+  // Save map as last active screen
   useEffect(() => {
-    localStorage.setItem('hasVisitedMap', 'true');
+    localStorage.setItem('lastActiveScreen', 'map');
   }, []);
 
   return <MapView />;
@@ -61,8 +64,8 @@ function App() {
     return <LoadingScreen onStartExploring={() => setHasSeenIntro(true)} />;
   }
 
-  // Check if user has visited map before
-  const hasVisitedMap = localStorage.getItem('hasVisitedMap') === 'true';
+  // Check last active screen (default to wallet)
+  const lastActiveScreen = localStorage.getItem('lastActiveScreen') || 'wallet';
 
   return (
     <BrowserRouter>
@@ -71,7 +74,7 @@ function App() {
           path="/"
           element={
             isAuthenticated ? (
-              hasVisitedMap ? (
+              lastActiveScreen === 'map' ? (
                 <Navigate to="/map" replace />
               ) : (
                 <Navigate to="/wallet" replace />
