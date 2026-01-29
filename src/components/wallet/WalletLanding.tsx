@@ -1,18 +1,18 @@
 import { useGameStore } from '../../store/gameStore';
+import { BottomNav } from '../navigation/BottomNav';
 
 interface WalletLandingProps {
-  onNavigateToMap: () => void;
   onOpenInventory: () => void;
 }
 
-export function WalletLanding({ onNavigateToMap, onOpenInventory }: WalletLandingProps) {
+export function WalletLanding({ onOpenInventory }: WalletLandingProps) {
   const { gemsCollected } = useGameStore();
 
   // Suppress unused variable warning
   void gemsCollected;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0F0728] via-[#1a0f3a] to-[#0F0728] text-white overflow-y-auto pb-24">
+    <div className="fixed inset-0 bg-gradient-to-b from-[#0F0728] via-[#1a0f3a] to-[#0F0728] text-white overflow-y-auto pb-24">
       {/* Header */}
       <div className="flex justify-between items-center p-6">
         <h1 className="text-2xl font-bold">SKYLARK</h1>
@@ -193,37 +193,7 @@ export function WalletLanding({ onNavigateToMap, onOpenInventory }: WalletLandin
       </div>
 
       {/* Bottom Navigation Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-purple-950/95 backdrop-blur-sm border-t border-purple-800/50 z-50">
-        <div className="flex items-center justify-around py-4">
-          {/* Wallet Button (Active) */}
-          <button className="flex flex-col items-center gap-1">
-            <div className="bg-yellow-400 p-2 rounded-lg">
-              <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-              </svg>
-            </div>
-            <span className="text-xs text-yellow-400 font-semibold">Wallet</span>
-          </button>
-
-          {/* Map Button */}
-          <button
-            onClick={onNavigateToMap}
-            className="flex flex-col items-center gap-1"
-          >
-            <div className="bg-purple-800 p-2 rounded-lg">
-              <svg className="w-6 h-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-              </svg>
-            </div>
-            <span className="text-xs text-gray-400">Map</span>
-          </button>
-
-          {/* Check In Button (Coming Soon) */}
-          <button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold px-6 py-2 rounded-full transition-colors">
-            Check In (Coming Soon)
-          </button>
-        </div>
-      </div>
+      <BottomNav />
 
       {/* Hide scrollbar */}
       <style>{`

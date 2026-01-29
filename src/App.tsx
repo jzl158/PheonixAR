@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import { LoadingScreen } from './components/auth/LoadingScreen';
@@ -23,7 +23,6 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function WalletWrapper() {
-  const navigate = useNavigate();
   const [showInventory, setShowInventory] = useState(false);
 
   // Save wallet as last active screen
@@ -31,14 +30,9 @@ function WalletWrapper() {
     localStorage.setItem('lastActiveScreen', 'wallet');
   }, []);
 
-  const handleNavigateToMap = () => {
-    navigate('/map');
-  };
-
   return (
     <>
       <WalletLanding
-        onNavigateToMap={handleNavigateToMap}
         onOpenInventory={() => setShowInventory(true)}
       />
       {showInventory && <InventoryModal onClose={() => setShowInventory(false)} />}

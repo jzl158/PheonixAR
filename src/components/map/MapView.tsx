@@ -18,6 +18,7 @@ import { Leaderboard } from '../leaderboard/Leaderboard';
 import { QuizModal } from '../quiz/QuizModal';
 import { InventoryModal } from '../inventory/InventoryModal';
 import { LocationCard } from '../location/LocationCard';
+import { BottomNav } from '../navigation/BottomNav';
 import { snapToNearestRoad, haversineDistance } from '../../services/roadsService';
 
 // Declare Google Maps, 3D Maps, and 8th Wall types
@@ -2151,6 +2152,9 @@ export function MapView() {
           }
         }
       `}</style>
+
+      {/* Bottom Navigation Bar */}
+      <BottomNav />
     </div>
   );
 }
