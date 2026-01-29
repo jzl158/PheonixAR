@@ -21,7 +21,7 @@ export function LocationCard({
 }: LocationCardProps) {
   return (
     <div
-      className="fixed bottom-4 left-4 right-4 z-50 animate-slide-up"
+      className="fixed bottom-28 left-4 right-4 z-50 animate-slide-up"
       onClick={(e) => e.stopPropagation()}
     >
       <div className="bg-gradient-to-br from-purple-900 to-purple-800 rounded-2xl p-4 shadow-2xl border-2 border-purple-700/50">
