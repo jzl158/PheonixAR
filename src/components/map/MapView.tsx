@@ -1874,7 +1874,7 @@ export function MapView() {
       />
 
       {/* Mission Banner - Right Below Trophy Menu */}
-      <div className="absolute bottom-38 left-0 right-0 z-20 px-4">
+      <div className="absolute bottom-[140px] left-0 right-0 z-20 px-4">
         <div className="bg-gradient-to-r from-purple-900/95 via-purple-800/95 to-purple-900/95 backdrop-blur-md rounded-2xl shadow-2xl border-2 border-purple-500/50 overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3">
             {/* Level Badge on Left */}
@@ -2000,7 +2000,7 @@ export function MapView() {
             console.log('🧭 Compass: Centered on player position');
           }
         }}
-        className="absolute bottom-24 right-6 z-30 bg-primary-600/90 backdrop-blur-sm hover:bg-primary-700 text-white p-4 rounded-full shadow-xl transition-all active:scale-95"
+        className="absolute bottom-[110px] right-6 z-30 bg-primary-600/90 backdrop-blur-sm hover:bg-primary-700 text-white p-4 rounded-full shadow-xl transition-all active:scale-95"
         title="Center on my location"
       >
         <svg
