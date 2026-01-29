@@ -27,7 +27,7 @@ export function OTPVerification() {
       setIsLoading(true);
       try {
         await verifyOTP(code);
-        navigate('/map');
+        navigate('/wallet');
       } catch (error) {
         console.error('Error verifying OTP:', error);
         alert('Invalid verification code. Please try again.');

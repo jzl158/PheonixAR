@@ -49,7 +49,7 @@ export function PhoneInput() {
       collectedCoins: [],
       createdAt: new Date(),
     });
-    navigate('/map');
+    navigate('/wallet');
   };
 
   return (
