@@ -19,6 +19,7 @@ import { QuizModal } from '../quiz/QuizModal';
 import { InventoryModal } from '../inventory/InventoryModal';
 import { LocationCard } from '../location/LocationCard';
 import { BottomNav } from '../navigation/BottomNav';
+import { ViewActivations } from '../activations/ViewActivations';
 import { snapToNearestRoad, haversineDistance } from '../../services/roadsService';
 
 // Declare Google Maps, 3D Maps, and 8th Wall types
@@ -70,6 +71,15 @@ export function MapView() {
     activationsCount?: number;
     onCollect?: () => void;
     collectLabel?: string;
+    onActivationsClick?: () => void;
+  } | null>(null);
+
+  // ViewActivations modal state
+  const [showActivations, setShowActivations] = useState(false);
+  const [selectedBusiness, setSelectedBusiness] = useState<{
+    name: string;
+    tagline: string;
+    logo?: string;
   } | null>(null);
 
   // Load 8th Wall AR script
@@ -398,13 +408,45 @@ export function MapView() {
             console.error('❌ Permanent Mario brick FAILED to load:', event);
           });
 
-          // Add click listener to show quiz modal
+          // Add click listener to show location card
           permanentBrick.addEventListener('gmp-click', () => {
-            console.log('🧱 Permanent Mario brick tapped! Showing quiz...');
-            // Set position for gems reveal
-            setBrickModel(permanentBrick);
-            setBrickPosition(fixedPosition);
-            setShowQuizModal(true);
+            console.log('🧱 Permanent Mario brick tapped! Showing location...');
+
+            // Get current player position for distance calculation
+            const currentPos = currentPositionRef.current;
+            if (!currentPos) {
+              console.log('❌ Current position not available');
+              return;
+            }
+
+            // Calculate distance to location
+            const distanceMeters = haversineDistance(
+              currentPos.lat,
+              currentPos.lng,
+              fixedPosition.lat,
+              fixedPosition.lng
+            );
+            const distanceMiles = distanceMeters * 0.000621371;
+
+            // Set business info for activations view
+            setSelectedBusiness({
+              name: "Flockin' Feathers",
+              tagline: "Reviving fashion, reimagining community.",
+              logo: undefined,
+            });
+
+            // Show location card with business details
+            setSelectedLocation({
+              name: "Flockin' Feathers",
+              category: 'Thrift Store',
+              distance: distanceMiles,
+              imageUrl: undefined,
+              activationsCount: 3,
+              onActivationsClick: () => {
+                setSelectedLocation(null);
+                setShowActivations(true);
+              },
+            });
           });
 
           // Append model to map
@@ -2195,6 +2237,17 @@ export function MapView() {
           onClose={() => setSelectedLocation(null)}
           onCollect={selectedLocation.onCollect}
           collectLabel={selectedLocation.collectLabel}
+          onActivationsClick={selectedLocation.onActivationsClick}
+        />
+      )}
+
+      {/* ViewActivations Modal */}
+      {showActivations && selectedBusiness && (
+        <ViewActivations
+          businessName={selectedBusiness.name}
+          businessTagline={selectedBusiness.tagline}
+          businessLogo={selectedBusiness.logo}
+          onClose={() => setShowActivations(false)}
         />
       )}
 

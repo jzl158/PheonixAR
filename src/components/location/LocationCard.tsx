@@ -7,6 +7,7 @@ interface LocationCardProps {
   onClose: () => void;
   onCollect?: () => void; // Optional collect action
   collectLabel?: string; // Label for collect button
+  onActivationsClick?: () => void; // Optional activations click
 }
 
 export function LocationCard({
@@ -18,6 +19,7 @@ export function LocationCard({
   onClose,
   onCollect,
   collectLabel = 'Collect',
+  onActivationsClick,
 }: LocationCardProps) {
   return (
     <div
@@ -67,7 +69,10 @@ export function LocationCard({
                 {collectLabel}
               </button>
             ) : (
-              <button className="bg-[#E6C787] hover:bg-[#E6C787]/90 text-gray-900 font-bold text-sm px-4 py-2 rounded-full transition-colors">
+              <button
+                onClick={onActivationsClick}
+                className="bg-[#E6C787] hover:bg-[#E6C787]/90 text-gray-900 font-bold text-sm px-4 py-2 rounded-full transition-colors"
+              >
                 Available Activations ({activationsCount})
               </button>
             )}
