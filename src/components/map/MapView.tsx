@@ -367,6 +367,59 @@ export function MapView() {
 
       add3DModel();
 
+      // Add permanent Mario brick at fixed location
+      const addPermanentMarioBrick = async () => {
+        try {
+          console.log('🎨 Adding permanent Mario brick at fixed location...');
+
+          // Wait for map to fully initialize
+          await new Promise(resolve => setTimeout(resolve, 3500));
+
+          // Import Model3DInteractiveElement
+          const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
+
+          const fixedPosition = { lat: 33.7544633, lng: -84.3716605 };
+
+          // Create Mario brick at fixed location
+          const permanentBrick = new Model3DInteractiveElement({
+            src: '/mariobrickresize.glb',
+            position: { lat: fixedPosition.lat, lng: fixedPosition.lng, altitude: 0 },
+            orientation: { heading: 0, tilt: 0, roll: 0 },
+            scale: 5,
+            altitudeMode: 'CLAMP_TO_GROUND',
+          });
+
+          // Debug: Listen for model load events
+          permanentBrick.addEventListener('gmp-load', () => {
+            console.log('✅ Permanent Mario brick LOADED successfully!');
+          });
+
+          permanentBrick.addEventListener('gmp-error', (event: any) => {
+            console.error('❌ Permanent Mario brick FAILED to load:', event);
+          });
+
+          // Add click listener to show quiz modal
+          permanentBrick.addEventListener('gmp-click', () => {
+            console.log('🧱 Permanent Mario brick tapped! Showing quiz...');
+            // Set position for gems reveal
+            setBrickModel(permanentBrick);
+            setBrickPosition(fixedPosition);
+            setShowQuizModal(true);
+          });
+
+          // Append model to map
+          const map3d = document.querySelector('gmp-map-3d');
+          if (map3d) {
+            map3d.append(permanentBrick);
+            console.log('✅ Permanent Mario brick added at:', fixedPosition);
+          }
+        } catch (error) {
+          console.error('❌ Error adding permanent Mario brick:', error);
+        }
+      };
+
+      addPermanentMarioBrick();
+
       // Add coins randomly around the player with varying values and sizes
       const addCoins = async () => {
         try {
