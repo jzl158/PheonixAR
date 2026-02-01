@@ -24,11 +24,11 @@ export function LocationCard({
       className="fixed bottom-28 left-4 right-4 z-50 animate-slide-up"
       onClick={(e) => e.stopPropagation()}
     >
-      <div className="bg-gradient-to-br from-purple-900 to-purple-800 rounded-2xl p-4 shadow-2xl border-2 border-purple-700/50">
+      <div className="bg-[#0F0428] rounded-2xl p-4 shadow-2xl border-2 border-[#E6C787]/30">
         <div className="flex items-center gap-4">
           {/* Location Image */}
           <div className="flex-shrink-0">
-            <div className="w-24 h-24 rounded-xl border-4 border-cyan-400 overflow-hidden bg-gray-800">
+            <div className="w-24 h-24 rounded-xl border-4 border-[#E6C787] overflow-hidden bg-gray-800">
               {imageUrl ? (
                 <img
                   src={imageUrl}
@@ -46,7 +46,7 @@ export function LocationCard({
           {/* Location Info */}
           <div className="flex-1 min-w-0">
             {/* Distance */}
-            <div className="text-purple-300 text-xs font-semibold mb-1">
+            <div className="text-[#E6C787] text-xs font-semibold mb-1">
               {distance.toFixed(1)} Mi
             </div>
 
@@ -56,18 +56,18 @@ export function LocationCard({
             </h3>
 
             {/* Category */}
-            <p className="text-purple-200 text-sm mb-3">{category}</p>
+            <p className="text-gray-300 text-sm mb-3">{category}</p>
 
             {/* Buttons */}
             {onCollect ? (
               <button
                 onClick={onCollect}
-                className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold text-sm px-4 py-2 rounded-full transition-colors"
+                className="bg-[#E6C787] hover:bg-[#E6C787]/90 text-gray-900 font-bold text-sm px-4 py-2 rounded-full transition-colors"
               >
                 {collectLabel}
               </button>
             ) : (
-              <button className="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold text-sm px-4 py-2 rounded-full transition-colors">
+              <button className="bg-[#E6C787] hover:bg-[#E6C787]/90 text-gray-900 font-bold text-sm px-4 py-2 rounded-full transition-colors">
                 Available Activations ({activationsCount})
               </button>
             )}
