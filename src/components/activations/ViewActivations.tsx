@@ -5,6 +5,7 @@ interface ViewActivationsProps {
   businessTagline: string;
   businessLogo?: string;
   onClose: () => void;
+  onPlayActivation?: (activationId: string, activationName: string) => void;
 }
 
 interface Activation {
@@ -20,6 +21,7 @@ export function ViewActivations({
   businessTagline,
   businessLogo,
   onClose,
+  onPlayActivation,
 }: ViewActivationsProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -122,7 +124,10 @@ export function ViewActivations({
                     </div>
 
                     {/* Play Now Button */}
-                    <button className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => onPlayActivation?.(activation.id, activation.name)}
+                      className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2"
+                    >
                       <span>▶</span>
                       <span>Play now</span>
                     </button>

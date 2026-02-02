@@ -66,15 +66,37 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
 
 export const QuizModal: React.FC<QuizModalProps> = ({ onCorrectAnswer, onClose }) => {
   const [currentQuestion, setCurrentQuestion] = useState<QuizQuestion | null>(null);
+  const [questionIndex, setQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(10);
 
   useEffect(() => {
     // Select a random question on mount
     const randomIndex = Math.floor(Math.random() * QUIZ_QUESTIONS.length);
     setCurrentQuestion(QUIZ_QUESTIONS[randomIndex]);
+    setQuestionIndex(randomIndex);
   }, []);
+
+  // Timer countdown
+  useEffect(() => {
+    if (showFeedback || timeLeft === 0) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          // Auto skip when time runs out
+          handleSkip();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [showFeedback, timeLeft]);
 
   const handleAnswerClick = (index: number) => {
     if (showFeedback) return; // Prevent multiple clicks
@@ -93,36 +115,86 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onCorrectAnswer, onClose }
     }
   };
 
+  const handleSkip = () => {
+    // Close the modal when skipping
+    onClose();
+  };
+
   if (!currentQuestion) {
     return null;
   }
 
+  // Calculate timer progress for circular timer (0-1)
+  const timerProgress = timeLeft / 10;
+  const circumference = 2 * Math.PI * 45; // radius = 45
+  const strokeDashoffset = circumference * (1 - timerProgress);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
-      <div className="bg-purple-600 rounded-2xl p-8 max-w-2xl w-full shadow-2xl border-4 border-purple-400">
+      <div className="bg-white rounded-3xl p-8 max-w-2xl w-full shadow-2xl relative">
+        {/* Circular Timer */}
+        <div className="absolute top-8 right-8 w-24 h-24">
+          <svg className="transform -rotate-90 w-24 h-24">
+            {/* Background circle */}
+            <circle
+              cx="48"
+              cy="48"
+              r="45"
+              stroke="#E5E7EB"
+              strokeWidth="6"
+              fill="none"
+            />
+            {/* Progress circle */}
+            <circle
+              cx="48"
+              cy="48"
+              r="45"
+              stroke="#F97316"
+              strokeWidth="6"
+              fill="none"
+              strokeDasharray={circumference}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              className="transition-all duration-1000 ease-linear"
+            />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="text-2xl font-bold text-gray-900">{timeLeft}</span>
+          </div>
+        </div>
+
+        {/* Question Counter */}
+        <div className="text-purple-600 font-semibold text-lg mb-2">
+          Question {questionIndex + 1}/{QUIZ_QUESTIONS.length}
+        </div>
+
         {/* Question */}
-        <h2 className="text-3xl font-bold text-white mb-8 text-center">
+        <h2 className="text-2xl font-bold text-gray-900 mb-8 pr-28">
           {currentQuestion.question}
         </h2>
 
         {/* Options */}
-        <div className="space-y-4">
+        <div className="space-y-3">
           {currentQuestion.options.map((option, index) => {
             const isSelected = selectedAnswer === index;
             const isCorrectOption = index === currentQuestion.correctAnswer;
 
-            let buttonClass = "w-full p-4 rounded-xl text-xl font-semibold transition-all duration-200 ";
+            let buttonClass = "w-full p-4 rounded-2xl text-lg font-medium transition-all duration-200 border-2 ";
 
             if (showFeedback) {
               if (isCorrectOption) {
-                buttonClass += "bg-green-500 text-white border-4 border-green-300";
+                buttonClass += "bg-green-500 text-white border-green-500";
               } else if (isSelected && !isCorrect) {
-                buttonClass += "bg-red-500 text-white border-4 border-red-300";
+                buttonClass += "bg-red-500 text-white border-red-500";
               } else {
-                buttonClass += "bg-purple-400 text-white opacity-50";
+                buttonClass += "bg-gray-100 text-gray-400 border-gray-200";
               }
             } else {
-              buttonClass += "bg-white text-purple-600 hover:bg-purple-100 hover:scale-105 active:scale-95 cursor-pointer";
+              if (isSelected) {
+                buttonClass += "bg-purple-600 text-white border-purple-600";
+              } else {
+                buttonClass += "bg-gray-100 text-gray-700 border-gray-200 hover:border-purple-400 cursor-pointer";
+              }
             }
 
             return (
@@ -142,17 +214,17 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onCorrectAnswer, onClose }
         {showFeedback && (
           <div className="mt-6 text-center">
             {isCorrect ? (
-              <div className="text-green-300 text-2xl font-bold animate-pulse">
+              <div className="text-green-600 text-2xl font-bold">
                 ✅ Correct! Revealing gems...
               </div>
             ) : (
               <div>
-                <div className="text-red-300 text-2xl font-bold mb-4">
+                <div className="text-red-600 text-2xl font-bold mb-4">
                   ❌ Incorrect! Try again later.
                 </div>
                 <button
                   onClick={onClose}
-                  className="bg-white text-purple-600 px-6 py-2 rounded-lg font-semibold hover:bg-purple-100"
+                  className="bg-gray-900 text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800"
                 >
                   Close
                 </button>
@@ -161,13 +233,13 @@ export const QuizModal: React.FC<QuizModalProps> = ({ onCorrectAnswer, onClose }
           </div>
         )}
 
-        {/* Close button (only show if not showing feedback) */}
+        {/* Skip Question button (only show if not showing feedback) */}
         {!showFeedback && (
           <button
-            onClick={onClose}
-            className="mt-6 w-full bg-purple-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-900"
+            onClick={handleSkip}
+            className="mt-6 w-full bg-gray-900 text-white px-6 py-3 rounded-full font-semibold hover:bg-gray-800"
           >
-            Cancel
+            Skip Question
           </button>
         )}
       </div>

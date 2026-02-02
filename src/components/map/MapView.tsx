@@ -2248,6 +2248,12 @@ export function MapView() {
           businessTagline={selectedBusiness.tagline}
           businessLogo={selectedBusiness.logo}
           onClose={() => setShowActivations(false)}
+          onPlayActivation={(activationId, activationName) => {
+            // For now, all activations trigger the quiz (Fashionsense is id: '1')
+            console.log(`🎮 Playing activation: ${activationName} (ID: ${activationId})`);
+            setShowActivations(false);
+            setShowQuizModal(true);
+          }}
         />
       )}
 
