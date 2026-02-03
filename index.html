@@ -11,14 +11,10 @@
   </head>
   <body>
     <div id="root"></div>
-    <!-- Google Maps 3D API -->
+    <!-- Google Maps 3D API - loaded dynamically by main.tsx using env var -->
     <script>
-      window.GOOGLE_MAPS_API_KEY = 'AIzaSyBWI6l_y0giocZSmvOZQQFXVyer3QX1Rfc';
       window.mapsLoaded = false;
       window.mapsError = null;
-    </script>
-    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBWI6l_y0giocZSmvOZQQFXVyer3QX1Rfc&v=beta&libraries=maps3d,marker&callback=initMap"></script>
-    <script>
       function initMap() {
         console.log('Google Maps 3D API loaded successfully!');
         window.mapsLoaded = true;

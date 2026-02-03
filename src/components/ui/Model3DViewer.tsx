@@ -46,7 +46,7 @@ export function Model3DViewer({ onClose }: Model3DViewerProps) {
     if (!mapContainerRef.current) return;
 
     // Set Mapbox access token
-    mapboxgl.accessToken = 'pk.eyJ1Ijoic2lkZXRyYWNrZWQ1IiwiYSI6ImNta2pjenhnMzEyeXQzZW9uZTc3NTUzdXIifQ.MjLjvkL2VCSaR_3IkulVlQ';
+    mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN;
 
     // Initialize map
     const map = new mapboxgl.Map({

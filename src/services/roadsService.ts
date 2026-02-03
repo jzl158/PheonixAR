@@ -3,7 +3,7 @@
  * Snaps GPS coordinates to nearest road segments to keep game pieces on streets
  */
 
-const GOOGLE_MAPS_API_KEY = 'AIzaSyBWI6l_y0giocZSmvOZQQFXVyer3QX1Rfc';
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const ROADS_API_BASE_URL = 'https://roads.googleapis.com/v1/nearestRoads';
 
 interface SnappedPosition {
