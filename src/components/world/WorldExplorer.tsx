@@ -69,7 +69,7 @@ export function WorldExplorer({ onClose }: WorldExplorerProps) {
           setIsGenerating(false);
         }
       },
-      60, // max 60 attempts
+      180, // max 180 attempts = 15 minutes (world generation takes 5-15 minutes)
       5000 // check every 5 seconds
     );
   };
@@ -150,10 +150,23 @@ export function WorldExplorer({ onClose }: WorldExplorerProps) {
           <div className="text-center py-12">
             <div className="text-6xl mb-4 animate-pulse">🌍</div>
             <p className="text-white text-xl mb-2">Creating Your World</p>
-            <p className="text-gray-400">{generationStatus}</p>
+            <p className="text-gray-400 mb-2">{generationStatus}</p>
+            <p className="text-yellow-400 text-sm mb-4">⏱️ World generation typically takes 5-15 minutes</p>
+            <p className="text-gray-500 text-xs mb-6">Please keep this page open while your world is being created...</p>
             <div className="mt-6 flex justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-4 border-[#E6C787] border-t-transparent"></div>
             </div>
+            <button
+              onClick={() => {
+                setIsGenerating(false);
+                setError('');
+                setCustomPrompt('');
+                setDisplayName('');
+              }}
+              className="mt-8 bg-gray-700 hover:bg-gray-600 text-white px-6 py-2 rounded-full transition-colors"
+            >
+              Cancel
+            </button>
           </div>
         )}
 
