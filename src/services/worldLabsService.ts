@@ -40,6 +40,19 @@ export async function generateWorld(
   textPrompt: string
 ): Promise<WorldGenerationResponse> {
   try {
+    // Debug: Check if API key is loaded
+    if (!WORLD_LABS_API_KEY) {
+      console.error('❌ World Labs API key not found in environment variables');
+      return {
+        operation_id: '',
+        status: 'failed',
+        error: 'API key not configured. Please add VITE_WORLD_LABS_API_KEY to .env',
+      };
+    }
+
+    console.log('🔑 World Labs API key loaded:', WORLD_LABS_API_KEY.substring(0, 8) + '...');
+    console.log('🌍 Generating world:', { displayName, textPrompt });
+
     const response = await fetch(`${WORLD_LABS_BASE_URL}/worlds:generate`, {
       method: 'POST',
       headers: {
@@ -56,11 +69,13 @@ export async function generateWorld(
     });
 
     if (!response.ok) {
+      const errorBody = await response.text();
       console.error('❌ World Labs API error:', response.status, response.statusText);
+      console.error('❌ Error response body:', errorBody);
       return {
         operation_id: '',
         status: 'failed',
-        error: `API error: ${response.status} ${response.statusText}`,
+        error: `API error: ${response.status} ${response.statusText}. ${errorBody}`,
       };
     }
 
@@ -90,6 +105,8 @@ export async function checkOperationStatus(
   operationId: string
 ): Promise<OperationStatusResponse> {
   try {
+    console.log('📊 Checking operation status:', operationId);
+
     const response = await fetch(
       `${WORLD_LABS_BASE_URL}/operations/${operationId}`,
       {
@@ -101,10 +118,12 @@ export async function checkOperationStatus(
     );
 
     if (!response.ok) {
+      const errorBody = await response.text();
       console.error('❌ World Labs API error:', response.status, response.statusText);
+      console.error('❌ Error response body:', errorBody);
       return {
         status: 'failed',
-        error: `API error: ${response.status} ${response.statusText}`,
+        error: `API error: ${response.status} ${response.statusText}. ${errorBody}`,
       };
     }
 
