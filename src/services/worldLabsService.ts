@@ -80,10 +80,17 @@ export async function generateWorld(
     }
 
     const data = await response.json();
-    console.log('✅ World generation started:', data);
+    console.log('✅ World generation started:', JSON.stringify(data, null, 2));
+
+    const operationId = data.operation_id || data.name?.split('/').pop() || '';
+    console.log('📝 Extracted operation ID:', operationId);
+
+    if (!operationId) {
+      console.error('⚠️ No operation ID found in response. Response keys:', Object.keys(data));
+    }
 
     return {
-      operation_id: data.operation_id || data.name?.split('/').pop() || '',
+      operation_id: operationId,
       status: 'pending',
     };
   } catch (error) {
@@ -128,10 +135,19 @@ export async function checkOperationStatus(
     }
 
     const data = await response.json();
-    console.log('📊 Operation status:', data);
+    console.log('📊 Operation status response:', JSON.stringify(data, null, 2));
+    console.log('📊 Response structure check:', {
+      hasDone: 'done' in data,
+      doneValue: data.done,
+      hasResponse: 'response' in data,
+      hasWorld: data.response?.world,
+      hasError: 'error' in data,
+      allKeys: Object.keys(data),
+    });
 
     // Parse the response based on World Labs API format
     if (data.done === true && data.response?.world) {
+      console.log('✅ World generation completed!', data.response.world);
       return {
         status: 'completed',
         world: {
@@ -142,16 +158,19 @@ export async function checkOperationStatus(
         },
       };
     } else if (data.done === false) {
+      console.log('⏳ World generation still in progress...');
       return {
         status: 'processing',
       };
     } else if (data.error) {
+      console.log('❌ World generation failed:', data.error);
       return {
         status: 'failed',
         error: data.error.message || 'Generation failed',
       };
     }
 
+    console.log('⚠️ Unexpected response format, treating as pending');
     return {
       status: 'pending',
     };
