@@ -462,6 +462,91 @@ export function MapView() {
 
       addPermanentMarioBrick();
 
+      // Add second permanent Mario brick at fixed location
+      const addSecondPermanentMarioBrick = async () => {
+        try {
+          console.log('🎨 Adding second permanent Mario brick at fixed location...');
+
+          // Wait for map to fully initialize
+          await new Promise(resolve => setTimeout(resolve, 3500));
+
+          // Import Model3DInteractiveElement
+          const { Model3DInteractiveElement } = await window.google.maps.importLibrary('maps3d') as any;
+
+          const fixedPosition = { lat: 33.7830039, lng: -84.3721945 };
+
+          // Create Mario brick at fixed location
+          const permanentBrick = new Model3DInteractiveElement({
+            src: '/mariobrickresize.glb',
+            position: { lat: fixedPosition.lat, lng: fixedPosition.lng, altitude: 0 },
+            orientation: { heading: 0, tilt: 0, roll: 0 },
+            scale: 5,
+            altitudeMode: 'CLAMP_TO_GROUND',
+          });
+
+          // Debug: Listen for model load events
+          permanentBrick.addEventListener('gmp-load', () => {
+            console.log('✅ Second permanent Mario brick LOADED successfully!');
+          });
+
+          permanentBrick.addEventListener('gmp-error', (event: any) => {
+            console.error('❌ Second permanent Mario brick FAILED to load:', event);
+          });
+
+          // Add click listener to show location card
+          permanentBrick.addEventListener('gmp-click', () => {
+            console.log('🧱 Second permanent Mario brick tapped! Showing location...');
+
+            // Get current player position for distance calculation
+            const currentPos = currentPositionRef.current;
+            if (!currentPos) {
+              console.log('❌ Current position not available');
+              return;
+            }
+
+            // Calculate distance to location
+            const distanceMeters = haversineDistance(
+              currentPos.lat,
+              currentPos.lng,
+              fixedPosition.lat,
+              fixedPosition.lng
+            );
+            const distanceMiles = distanceMeters * 0.000621371;
+
+            // Set business info for activations view
+            setSelectedBusiness({
+              name: "Business Location 2",
+              tagline: "Coming soon...",
+              logo: undefined,
+            });
+
+            // Show location card with business details
+            setSelectedLocation({
+              name: "Business Location 2",
+              category: 'Business',
+              distance: distanceMiles,
+              imageUrl: undefined,
+              activationsCount: 3,
+              onActivationsClick: () => {
+                setSelectedLocation(null);
+                setShowActivations(true);
+              },
+            });
+          });
+
+          // Append model to map
+          const map3d = document.querySelector('gmp-map-3d');
+          if (map3d) {
+            map3d.append(permanentBrick);
+            console.log('✅ Second permanent Mario brick added at:', fixedPosition);
+          }
+        } catch (error) {
+          console.error('❌ Error adding second permanent Mario brick:', error);
+        }
+      };
+
+      addSecondPermanentMarioBrick();
+
       // Add coins randomly around the player with varying values and sizes
       const addCoins = async () => {
         try {
