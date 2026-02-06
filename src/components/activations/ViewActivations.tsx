@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { WorldExplorer } from '../world/WorldExplorer';
 
 interface ViewActivationsProps {
   businessName: string;
@@ -24,6 +25,7 @@ export function ViewActivations({
   onPlayActivation,
 }: ViewActivationsProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [showWorldExplorer, setShowWorldExplorer] = useState(false);
 
   const activations: Activation[] = [
     {
@@ -35,10 +37,10 @@ export function ViewActivations({
     },
     {
       id: '2',
-      type: 'Trivia',
-      name: 'How Does This Work',
-      playerCount: 8,
-      isPopular: false,
+      type: '3D World',
+      name: 'World Explorer',
+      playerCount: 24,
+      isPopular: true,
     },
     {
       id: '3',
@@ -125,7 +127,14 @@ export function ViewActivations({
 
                     {/* Play Now Button */}
                     <button
-                      onClick={() => onPlayActivation?.(activation.id, activation.name)}
+                      onClick={() => {
+                        // World Explorer (id '2') launches its own component
+                        if (activation.id === '2') {
+                          setShowWorldExplorer(true);
+                        } else {
+                          onPlayActivation?.(activation.id, activation.name);
+                        }
+                      }}
                       className="w-full bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-bold py-3 rounded-full transition-colors flex items-center justify-center gap-2"
                     >
                       <span>▶</span>
@@ -203,6 +212,11 @@ export function ViewActivations({
           scrollbar-width: none;
         }
       `}</style>
+
+      {/* World Explorer Modal */}
+      {showWorldExplorer && (
+        <WorldExplorer onClose={() => setShowWorldExplorer(false)} />
+      )}
     </div>
   );
 }
