@@ -515,17 +515,17 @@ export function MapView() {
 
             // Set business info for activations view
             setSelectedBusiness({
-              name: "Business Location 2",
-              tagline: "Coming soon...",
-              logo: undefined,
+              name: "Park Tavern",
+              tagline: "Atlanta's favorite gathering spot",
+              logo: '/ParkTavern',
             });
 
             // Show location card with business details
             setSelectedLocation({
-              name: "Business Location 2",
-              category: 'Business',
+              name: "Park Tavern",
+              category: 'Restaurant & Bar',
               distance: distanceMiles,
-              imageUrl: undefined,
+              imageUrl: '/ParkTavern',
               activationsCount: 3,
               onActivationsClick: () => {
                 setSelectedLocation(null);
